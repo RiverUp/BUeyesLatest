@@ -29,9 +29,11 @@ export default {
 }
 .el-card {
   --el-card-padding: 10px;
+  width: 95%;
 }
 .singleTitle {
   font-size: large;
   font-weight: bold;
+  margin: 50px;
 }
 </style>
