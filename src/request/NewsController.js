@@ -9,7 +9,7 @@ const getTitlesByCgId = async (categoryId, date) => {
         key: "time",
         order: 0,
         pageNum: 1,
-        pageSize: 10,
+        pageSize: 1,
       }
     );
     return res;
@@ -17,11 +17,17 @@ const getTitlesByCgId = async (categoryId, date) => {
     console.log(error);
   }
 };
-/**
- *const getTitlesByKd = async ()=>{
-    try{
-        const res =news.post()
-    }
- *
- */
-export { getTitlesByCgId };
+const getTitlesByKd = async (date, keyword) => {
+  try {
+    const res = news.post(`getByKeyWord?date=${date}&keyWord=${keyword}`, {
+      key: "time",
+      order: 0,
+      pageNum: 1,
+      pageSize: 10,
+    });
+    return res;
+  } catch (error) {
+    console.log(error);
+  }
+};
+export { getTitlesByCgId, getTitlesByKd };
