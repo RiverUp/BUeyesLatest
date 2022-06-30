@@ -9,6 +9,8 @@
     "lint": "eslint --fix --ext.js,.vue src"
   },
   "dependencies": {
+    "@ant-design/icons": "^4.7.0",
+    "@ant-design/icons-vue": "^6.1.0",
     "@element-plus/icons-vue": "^2.0.6",
     "axios": "^0.27.2",
     "core-js": "^3.8.3",

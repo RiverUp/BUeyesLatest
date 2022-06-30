@@ -2,18 +2,22 @@
   <el-container>
     <el-header>
       <el-button class="user" @click="ShowUserInfo">
-        <el-icon><Expand /></el-icon>
+        <el-icon class="outside"><Expand /></el-icon>
       </el-button>
-      <el-button class="search" @click="ShowSearchInput">
-        <el-icon><Search /></el-icon>
+      <el-button class="search" @click="ShowSearchInput" color="#626aef" round>
+        <el-icon class="outside" v-if="sortOrSearch"><Search /></el-icon>
+        <el-icon class="outside" v-else><Back /></el-icon>
       </el-button>
       <p class="title">BUeyes</p>
       <el-menu
+        v-if="sortOrSearch"
         :default-active="1"
         mode="horizontal"
         ellipsis="false"
-        @select="ChangeToSelectedSort"
+        @select="ChangeToSelectedSort(index)"
         text-color="white"
+        active-text-color="purple"
+        router="true"
       >
         <el-menu-item index="1">{{ sort[0] }}</el-menu-item>
         <el-menu-item index="2">{{ sort[1] }}</el-menu-item>
@@ -22,6 +26,13 @@
         <el-menu-item index="5">{{ sort[4] }}</el-menu-item>
         <el-menu-item index="6">{{ sort[5] }}</el-menu-item>
       </el-menu>
+      <el-input v-else v-model="searchInfo" placeholder="Please input">
+        <template #prepend>
+          <el-button class="insideButton">
+            <el-icon class="inside"><Search /></el-icon
+          ></el-button>
+        </template>
+      </el-input>
     </el-header>
   </el-container>
   <div class="hello">
@@ -29,12 +40,7 @@
       <el-main>
         <el-scrollbar v-infinite-scroll="GetMoreNews">
           <div v-for="news in newsPieces" :key="news.id">
-            <el-card class="newsTitle">
-              <p class="singleTitle">{{ news.title }}</p>
-              <p style="text-align: right; margin-right: 10px">
-                {{ news.time }}
-              </p>
-            </el-card>
+            <NewsCard :newsPiece="news" @click="GoToNewsContent(news)" />
             <br />
           </div>
         </el-scrollbar>
@@ -43,34 +49,101 @@
   </div>
 </template>
 <script>
-import { Expand, Search } from "@element-plus/icons-vue";
+import { Expand, Search, Back } from "@element-plus/icons-vue";
 import { getTitlesByCgId } from "@/request/NewsController";
+import NewsCard from "./NewsCard.vue";
+import router from "@/router/index";
+import store from "@/store";
 export default {
   name: "NewsHead",
   components: {
     Expand,
     Search,
+    Back,
+    NewsCard,
   },
   data() {
     return {
       sort: ["推荐", "体育", "财经", "娱乐", "国际", "教育"],
       sortIndex: 0,
       newsPieces: [],
+      newsPiecesSaved: [],
+      sortOrSearch: true,
+      searchInfo: "",
     };
   },
   mounted() {
-    getTitlesByCgId(1, "2022-06-26").then((res) => {
-      this.newsPieces = res.data.data;
-    });
+    //第一次进入界面将每个类别的缓存都设为null
+    console.log("执行mounted");
+    if (this.$route.name === "home" && this.newsSaved === null) {
+      var i = 1;
+      for (; i < 11; i++) {
+        this.newsPiecesSaved[i] = null;
+      }
+      getTitlesByCgId(1, "2022_06_26").then((res) => {
+        this.newsPieces = res.data.data;
+        this.newsPiecesSaved[1] = this.newsPieces;
+        store.commit("ConvertNewsSaved", this.newsPiecesSaved);
+      });
+    } else {
+      if (this.$route.name === "newsSort") {
+        var caId = this.$route.params.categoryId;
+        this.newsPieces = this.newsSaved[caId];
+      } else {
+        this.newsPieces = this.newsSaved[1];
+      }
+    }
   },
   methods: {
     ShowUserInfo() {},
     ChangeToSelectedSort() {},
     GetMoreNews() {},
+    ShowSearchInput() {
+      this.sortOrSearch = !this.sortOrSearch;
+    },
+    GoToNewsContent(news) {
+      store.commit("ConvertNews", news);
+      router.push({
+        name: "news",
+        params: {
+          id: news.id,
+        },
+      });
+    },
+  },
+  computed: {
+    newsSaved() {
+      return store.state.newsPiecesSaved;
+    },
+  },
+  watch: {
+    $route: function () {
+      console.log("执行watch$route");
+      if (this.$route.name === "newsSort") {
+        var caId = this.$route.params.categoryId;
+        if (this.newsSaved[caId] === null) {
+          getTitlesByCgId(caId, "2022_06_26").then((res) => {
+            this.newsPieces = res.data.data;
+            this.newsPiecesSaved = this.newsSaved;
+            this.newsPiecesSaved[caId] = this.newsPieces; //View组件改变data会重新初始化
+            store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
+          });
+        } else {
+          this.newsPieces = this.newsSaved[caId];
+        }
+      }
+    },
   },
 };
 </script>
 <style scoped>
+.el-header {
+  background-color: #4a2ac6;
+  position: relative;
+  height: 600px;
+  padding: 0%;
+  width: 100%;
+}
 .el-button {
   height: 270px;
   padding: 0;
@@ -78,44 +151,43 @@ export default {
   background-color: #4a2ac6;
   border: 0px;
 }
+.insideButton {
+  height: 270px;
+  padding: 0;
+  width: 200px;
+}
+.el-input {
+  width: 90%;
+  height: 250px;
+}
+.el-input /deep/ .el-input__inner {
+  --el-input-inner-height: 250px;
+  font-size: large;
+}
 .user {
   float: left;
 }
 .search {
   float: right;
 }
-.el-icon {
+.outside {
   font-size: 150px;
   color: white;
+}
+.inside {
+  font-size: 125px;
 }
 .title {
   text-align: left;
   color: white;
   font-size: large;
 }
-.el-header {
-  padding: 0%;
-  width: 100%;
-}
 .el-menu {
   background-color: #4a2ac6;
+  height: 275px;
 }
 .el-menu-item {
   font-size: 100px;
-}
-.newsTitle {
-  background-clip: content-box;
-  background-color: rgb(246, 246, 198);
-  margin: 40px;
-  text-align: left;
-  border-radius: 75px;
-}
-.el-card {
-  --el-card-padding: 10px;
-}
-.singleTitle {
-  font-size: large;
-  font-weight: bold;
 }
 .el-main {
   margin-top: 70px;
