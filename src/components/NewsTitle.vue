@@ -71,11 +71,6 @@ export default {
 };
 </script>
 <style scoped>
-.el-header {
-  background-color: #4a2ac6;
-  position: relative;
-  height: 600px;
-}
 .el-button {
   height: 270px;
   padding: 0;

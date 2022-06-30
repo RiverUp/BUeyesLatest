@@ -6,7 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
-    "lint": "vue-cli-service lint"
+    "lint": "eslint --fix --ext.js,.vue src"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.0.6",
@@ -21,12 +21,11 @@
     "@babel/core": "^7.12.16",
     "@babel/eslint-parser": "^7.12.16",
     "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-plugin-router": "~5.0.0",
     "@vue/cli-plugin-unit-jest": "~5.0.0",
     "@vue/cli-plugin-vuex": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
-    "@vue/test-utils": "^2.0.0-0",
+    "@vue/test-utils": "^2.0.0",
     "@vue/vue3-jest": "^27.0.0-alpha.1",
     "babel-jest": "^27.0.6",
     "eslint": "^7.32.0",
@@ -35,7 +34,8 @@
     "eslint-plugin-vue": "^8.0.3",
     "jest": "^27.0.5",
     "postcss-px-to-viewport": "^1.1.1",
-    "prettier": "^2.4.1"
+    "prettier": "^2.4.1",
+    "typescript": "^4.7.4"
   },
   "eslintConfig": {
     "root": true,
@@ -50,7 +50,26 @@
     "parserOptions": {
       "parser": "@babel/eslint-parser"
     },
-    "rules": {},
+    "rules": {
+      "indent": [
+        1,
+        4
+      ],
+      "eqeqeq": "off",
+      "curly": "off",
+      "quotes": [
+        "off",
+        "double"
+      ],
+      "eslint-disable-next-line":4,
+      "max-len": [
+        "off",
+        200,
+        2
+      ],
+      "vue/max-attributes-per-line": "off",
+      "no-unused-vars": "off"
+    },
     "overrides": [
       {
         "files": [
