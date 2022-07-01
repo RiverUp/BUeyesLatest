@@ -55,7 +55,7 @@ const cancelCollection = async (userId, newsId) => {
 };
 const click = async (clickTime, newsId, timeOnPage, userId) => {
   try {
-    const res = userAction.post("", {
+    const res = userAction.post("/click", {
       clickTime: clickTime,
       newsId: newsId,
       timeOnPage: timeOnPage,

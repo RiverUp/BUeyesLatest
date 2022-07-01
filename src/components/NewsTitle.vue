@@ -146,12 +146,13 @@ export default {
       if (this.$route.name === "newsSort") {
         var caId = this.$route.params.categoryId;
         if (this.newsSaved[caId] === null) {
-          getTitlesByCgId(caId, "2022_06_30").then((res) => {
+          getTitlesByCgId(this.pageNo[caId], caId, "2022_06_30").then((res) => {
             this.newsPieces = res.data.data;
             this.newsPiecesSaved = this.newsSaved;
             this.newsPiecesSaved[caId] = this.newsPieces; //View组件改变data会重新初始化
             store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
           });
+          this.pageNo[caId]++;
         } else {
           this.newsPieces = this.newsSaved[caId];
         }
