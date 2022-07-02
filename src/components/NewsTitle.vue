@@ -4,6 +4,9 @@
       <el-button class="user" @click="ShowUserInfo">
         <el-icon class="outside"><Expand /></el-icon>
       </el-button>
+      <el-button class="search" @click="OcrRecognize" color="#626aef" round>
+        <el-icon class="outside" ><Camera /></el-icon>
+      </el-button>
       <el-button class="search" @click="ShowSearchInput" color="#626aef" round>
         <el-icon class="outside" v-if="sortOrSearch"><Search /></el-icon>
         <el-icon class="outside" v-else><Back /></el-icon>
@@ -49,17 +52,19 @@
   </div>
 </template>
 <script>
-import { Expand, Search, Back } from "@element-plus/icons-vue";
+import { Expand, Search, Back, Camera } from "@element-plus/icons-vue";
 import { getTitlesByCgId, getTitlesByKd } from "@/request/NewsController";
 import NewsCard from "./NewsCard.vue";
 import router from "@/router/index";
 import store from "@/store";
+import {CameraTakePicture} from "@/tool/camera";
 export default {
   name: "NewsHead",
   components: {
     Expand,
     Search,
     Back,
+    Camera,
     NewsCard,
   },
   data() {
@@ -121,6 +126,9 @@ export default {
         this.newsPieces = res.data.data;
       });
     },
+    OcrRecognize() {
+      CameraTakePicture();
+    },
     GoToNewsContent(news) {
       store.commit("SavePageNo", this.pageNo);
       store.commit("ConvertNews", news);
@@ -172,7 +180,7 @@ export default {
 .el-button {
   height: 270px;
   padding: 0;
-  width: 300px;
+  width: 275px;
   background-color: #4a2ac6;
   border: 0px;
 }
