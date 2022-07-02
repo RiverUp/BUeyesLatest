@@ -122,7 +122,7 @@ export default {
       this.sortOrSearch = !this.sortOrSearch;
     },
     SearchNews() {
-      getTitlesByKd("2022_06_26", this.searchInfo).then((res) => {
+      getTitlesByKd("2022_06_30", this.searchInfo).then((res) => {
         this.newsPieces = res.data.data;
       });
     },
