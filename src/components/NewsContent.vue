@@ -4,11 +4,13 @@
       <el-button class="back" @click="GoBack">
         <el-icon><Back /></el-icon>
       </el-button>
-      <el-button class="heart">
-        <el-icon><StarOutlined /></el-icon>
+      <el-button class="heart" @click="Collect">
+        <el-icon v-if="collectOrNot"><StarFilled /></el-icon>
+        <el-icon v-else><StarOutlined /></el-icon>
       </el-button>
-      <el-button class="heart">
-        <el-icon><HeartOutlined /></el-icon>
+      <el-button class="heart" @click="Like">
+        <el-icon v-if="likeOrNot"><HeartFilled /></el-icon>
+        <el-icon v-else><HeartOutlined /></el-icon>
       </el-button>
       <p class="title">Text Conent</p>
     </el-header>
@@ -17,33 +19,75 @@
     <NewsCard :newsPiece="newsConverted" />
   </el-container>
   <el-container>
-    <el-main>
-      {{ newsConverted.content }}
-    </el-main>
+    <el-main v-html="newsConverted.content"> </el-main>
   </el-container>
 </template>
 <script>
 import store from "@/store";
 import { Back } from "@element-plus/icons-vue";
-import { HeartOutlined, StarOutlined } from "@ant-design/icons-vue";
+import {
+  HeartOutlined,
+  StarOutlined,
+  HeartFilled,
+  StarFilled,
+} from "@ant-design/icons-vue";
 import NewsCard from "./NewsCard.vue";
 import router from "@/router/index";
+import {
+  like,
+  collect,
+  cancelLike,
+  cancelCollection,
+  click,
+} from "@/request/UserActionController";
 export default {
   name: "NewsContent",
+  data() {
+    return {
+      likeOrNot: false,
+      collectOrNot: false,
+      enterTime: Date.now(),
+    };
+  },
   components: {
     NewsCard,
     Back,
     HeartOutlined,
     StarOutlined,
+    HeartFilled,
+    StarFilled,
+  },
+  beforeUnmount() {
+    var timeOnPage = (Date.now() - this.enterTime) / 1000;
+    click(this.enterTime, this.newsConverted.id, timeOnPage, this.userId);
   },
   methods: {
     GoBack: function () {
       router.go(-1);
     },
+    Like() {
+      this.likeOrNot = !this.likeOrNot;
+      if (this.likeOrNot) {
+        like(this.userId, this.newsConverted.id);
+      } else {
+        cancelLike(this.userId, this.newsConverted.id);
+      }
+    },
+    Collect() {
+      this.collectOrNot = !this.collectOrNot;
+      if (this.collectOrNot) {
+        collect(this.userId, this.newsConverted.id);
+      } else {
+        cancelCollection(this.userId, this.newsConverted.id);
+      }
+    },
   },
   computed: {
     newsConverted() {
       return store.state.news;
+    },
+    userId() {
+      return store.state.userId;
     },
   },
 };
@@ -83,5 +127,6 @@ export default {
   padding: 75px;
   line-height: 150px;
   height: 2700px;
+  text-align: left;
 }
 </style>

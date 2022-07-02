@@ -4,6 +4,9 @@
       <el-button class="user" @click="ShowUserInfo">
         <el-icon class="outside"><Expand /></el-icon>
       </el-button>
+      <el-button class="search" @click="OcrRecognize" color="#626aef" round>
+        <el-icon class="outside" ><Camera /></el-icon>
+      </el-button>
       <el-button class="search" @click="ShowSearchInput" color="#626aef" round>
         <el-icon class="outside" v-if="sortOrSearch"><Search /></el-icon>
         <el-icon class="outside" v-else><Back /></el-icon>
@@ -28,7 +31,7 @@
       </el-menu>
       <el-input v-else v-model="searchInfo" placeholder="Please input">
         <template #prepend>
-          <el-button class="insideButton">
+          <el-button class="insideButton" @click="SearchNews">
             <el-icon class="inside"><Search /></el-icon
           ></el-button>
         </template>
@@ -39,7 +42,7 @@
     <el-container>
       <el-main>
         <el-scrollbar v-infinite-scroll="GetMoreNews">
-          <div v-for="news in newsPieces" :key="news.id">
+          <div style="height: 100%" v-for="news in newsPieces" :key="news.id">
             <NewsCard :newsPiece="news" @click="GoToNewsContent(news)" />
             <br />
           </div>
@@ -49,17 +52,19 @@
   </div>
 </template>
 <script>
-import { Expand, Search, Back } from "@element-plus/icons-vue";
-import { getTitlesByCgId } from "@/request/NewsController";
+import { Expand, Search, Back, Camera } from "@element-plus/icons-vue";
+import { getTitlesByCgId, getTitlesByKd } from "@/request/NewsController";
 import NewsCard from "./NewsCard.vue";
 import router from "@/router/index";
 import store from "@/store";
+import {CameraTakePicture} from "@/tool/camera";
 export default {
   name: "NewsHead",
   components: {
     Expand,
     Search,
     Back,
+    Camera,
     NewsCard,
   },
   data() {
@@ -70,6 +75,7 @@ export default {
       newsPiecesSaved: [],
       sortOrSearch: true,
       searchInfo: "",
+      pageNo: [],
     };
   },
   mounted() {
@@ -79,13 +85,16 @@ export default {
       var i = 1;
       for (; i < 11; i++) {
         this.newsPiecesSaved[i] = null;
+        this.pageNo[i] = 0;
       }
-      getTitlesByCgId(1, "2022_06_26").then((res) => {
+      getTitlesByCgId(this.pageNo[1], 1, "2022_06_30").then((res) => {
         this.newsPieces = res.data.data;
         this.newsPiecesSaved[1] = this.newsPieces;
         store.commit("ConvertNewsSaved", this.newsPiecesSaved);
       });
+      this.pageNo[1]++;
     } else {
+      this.pageNo = this.pageNoSaved;
       if (this.$route.name === "newsSort") {
         var caId = this.$route.params.categoryId;
         this.newsPieces = this.newsSaved[caId];
@@ -97,11 +106,31 @@ export default {
   methods: {
     ShowUserInfo() {},
     ChangeToSelectedSort() {},
-    GetMoreNews() {},
+    GetMoreNews() {
+      var cgId;
+      if (this.$route.name === "home") {
+        cgId = 1;
+      } else {
+        cgId = this.$route.params.categoryId;
+      }
+      getTitlesByCgId(this.pageNo[cgId], cgId, "2022_06_30").then((res) => {
+        this.newsPieces = this.newsPieces.concat(res.data.data);
+      });
+      this.pageNo[cgId]++;
+    },
     ShowSearchInput() {
       this.sortOrSearch = !this.sortOrSearch;
     },
+    SearchNews() {
+      getTitlesByKd("2022_06_30", this.searchInfo).then((res) => {
+        this.newsPieces = res.data.data;
+      });
+    },
+    OcrRecognize() {
+      CameraTakePicture();
+    },
     GoToNewsContent(news) {
+      store.commit("SavePageNo", this.pageNo);
       store.commit("ConvertNews", news);
       router.push({
         name: "news",
@@ -115,6 +144,9 @@ export default {
     newsSaved() {
       return store.state.newsPiecesSaved;
     },
+    pageNoSaved() {
+      return store.state.pageNo;
+    },
   },
   watch: {
     $route: function () {
@@ -122,12 +154,13 @@ export default {
       if (this.$route.name === "newsSort") {
         var caId = this.$route.params.categoryId;
         if (this.newsSaved[caId] === null) {
-          getTitlesByCgId(caId, "2022_06_26").then((res) => {
+          getTitlesByCgId(this.pageNo[caId], caId, "2022_06_30").then((res) => {
             this.newsPieces = res.data.data;
             this.newsPiecesSaved = this.newsSaved;
             this.newsPiecesSaved[caId] = this.newsPieces; //View组件改变data会重新初始化
             store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
           });
+          this.pageNo[caId]++;
         } else {
           this.newsPieces = this.newsSaved[caId];
         }
@@ -147,7 +180,7 @@ export default {
 .el-button {
   height: 270px;
   padding: 0;
-  width: 300px;
+  width: 275px;
   background-color: #4a2ac6;
   border: 0px;
 }
@@ -193,5 +226,6 @@ export default {
   margin-top: 70px;
   height: 3250px;
   padding: 0%;
+  overflow-y: hidden;
 }
 </style>
