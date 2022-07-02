@@ -22,7 +22,7 @@ export default {
 <style scoped>
 .newsTitle {
   background-clip: content-box;
-  background-color: rgb(246, 246, 198);
+  background-color: rgb(255, 254, 214);
   margin: 40px;
   text-align: left;
   border-radius: 75px;
