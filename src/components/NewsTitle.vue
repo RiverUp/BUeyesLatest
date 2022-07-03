@@ -1,4 +1,5 @@
 <template>
+  <UserDrawer :drawerOrNot="drawer" />
   <el-container>
     <el-header>
       <el-button class="user" @click="ShowUserInfo">
@@ -71,6 +72,7 @@ var time = null;
 import { Expand, Search, Back, Camera } from "@element-plus/icons-vue";
 import { getTitlesByCgId, getTitlesByKd } from "@/request/NewsController";
 import NewsCard from "./NewsCard.vue";
+import UserDrawer from "./UserDrawer.vue";
 import router from "@/router/index";
 import store from "@/store";
 import { CameraTakePicture } from "@/tool/camera";
@@ -83,6 +85,7 @@ export default {
     Back,
     Camera,
     NewsCard,
+    UserDrawer,
   },
   data() {
     return {
@@ -123,7 +126,9 @@ export default {
     }
   },
   methods: {
-    ShowUserInfo() {},
+    ShowUserInfo() {
+      store.commit("InverseDrawer");
+    },
     ChangeToSelectedSort() {},
     GetMoreNews() {
       var cgId;

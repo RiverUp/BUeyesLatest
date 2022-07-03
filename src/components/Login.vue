@@ -1,8 +1,11 @@
 <template>
   <div class="user">
     <Expand>
-        <!--更改了图片位置-->
-        <el-avatar style="text-align: center;" src = "@../assets/user.png"></el-avatar>
+      <!--更改了图片位置-->
+      <el-avatar
+        style="text-align: center"
+        src="@../assets/user.png"
+      ></el-avatar>
     </Expand>
   </div>
   <div style="text-align: center">

@@ -7,7 +7,7 @@ const userAction = axios.create({
 });
 const like = async (userId, newsId) => {
   try {
-    const res = userAction.post("/like", {
+    const res = await userAction.post("/like", {
       newsId: newsId,
       operateTime: getTime(),
       type: 0,
@@ -20,10 +20,10 @@ const like = async (userId, newsId) => {
 };
 const collect = async (userId, newsId) => {
   try {
-    const res = userAction.post("/collect", {
+    const res = await userAction.post("/collect", {
       newsId: newsId,
       operateTime: getTime(),
-      type: 0,
+      type: 1,
       userId: userId,
     });
     return res;
@@ -33,7 +33,7 @@ const collect = async (userId, newsId) => {
 };
 const cancelLike = async (userId, newsId) => {
   try {
-    const res = userAction.post(
+    const res = await userAction.post(
       `/cancelLike?newsId=${newsId}&userId=${userId}`,
       {}
     );
@@ -44,7 +44,7 @@ const cancelLike = async (userId, newsId) => {
 };
 const cancelCollection = async (userId, newsId) => {
   try {
-    const res = userAction.post(
+    const res = await userAction.post(
       `/cancelLike?newsId=${newsId}&userId=${userId}`,
       {}
     );
@@ -55,7 +55,7 @@ const cancelCollection = async (userId, newsId) => {
 };
 const click = async (clickTime, newsId, timeOnPage, userId) => {
   try {
-    const res = userAction.post("/click", {
+    const res = await userAction.post("/click", {
       clickTime: clickTime,
       newsId: newsId,
       timeOnPage: timeOnPage,
@@ -66,4 +66,14 @@ const click = async (clickTime, newsId, timeOnPage, userId) => {
     console.log(error);
   }
 };
-export { like, collect, cancelLike, cancelCollection, click };
+const getCollection = async (userId) => {
+  try {
+    const res = await userAction.get("/listCollections", {
+      params: { userId },
+    });
+    return res;
+  } catch (error) {
+    console.log(error);
+  }
+};
+export { like, collect, cancelLike, cancelCollection, click, getCollection };

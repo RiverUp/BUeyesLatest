@@ -7,6 +7,8 @@ export default createStore({
       newsPiecesSaved: null,
       pageNo: [],
       userId: "",
+      drawerOrNot: false,
+      token: "",
     };
   },
   getters: {},
@@ -22,6 +24,9 @@ export default createStore({
     },
     StoreUserId(state, id) {
       state.userId = id;
+    },
+    InverseDrawer(state) {
+      state.drawerOrNot = !state.drawerOrNot;
     },
   },
   actions: {},
