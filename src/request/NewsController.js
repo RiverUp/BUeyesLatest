@@ -1,15 +1,15 @@
 import axios from "axios";
 import { BaseURL } from "./ServerAddress";
 const news = axios.create({ baseURL: BaseURL + "news/", timeout: 1000 });
-const getTitlesByCgId = async (categoryId, date) => {
+const getTitlesByCgId = async (pageNo, categoryId, date) => {
   try {
     const res = news.post(
       `getByCategoryId?categoryId=${categoryId}&date=${date}`,
       {
         key: "time",
         order: 0,
-        pageNum: 1,
-        pageSize: 1,
+        pageNum: pageNo,
+        pageSize: 10,
       }
     );
     return res;
@@ -22,8 +22,8 @@ const getTitlesByKd = async (date, keyword) => {
     const res = news.post(`getByKeyWord?date=${date}&keyWord=${keyword}`, {
       key: "time",
       order: 0,
-      pageNum: 1,
-      pageSize: 10,
+      pageNum: 0,
+      pageSize: 40,
     });
     return res;
   } catch (error) {

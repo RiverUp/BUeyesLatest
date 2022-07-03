@@ -1,17 +1,17 @@
 <template>
   <div class="home">
-    <UserDrawer></UserDrawer>
+    <NewsTitle />
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import UserDrawer from "@/components/UserDrawer.vue";
+import NewsTitle from "@/components/NewsTitle.vue";
 
 export default {
   name: "HomeView",
   components: {
-    UserDrawer,
+    NewsTitle,
   },
 };
 </script>

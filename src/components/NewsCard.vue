@@ -22,16 +22,18 @@ export default {
 <style scoped>
 .newsTitle {
   background-clip: content-box;
-  background-color: rgb(246, 246, 198);
+  background-color: rgb(255, 254, 214);
   margin: 40px;
   text-align: left;
   border-radius: 75px;
 }
 .el-card {
   --el-card-padding: 10px;
+  width: 95%;
 }
 .singleTitle {
   font-size: large;
   font-weight: bold;
+  margin: 50px;
 }
 </style>

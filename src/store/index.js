@@ -5,6 +5,8 @@ export default createStore({
     return {
       news: {},
       newsPiecesSaved: null,
+      pageNo: [],
+      userId: "",
     };
   },
   getters: {},
@@ -14,6 +16,12 @@ export default createStore({
     },
     ConvertNewsSaved(state, newsPieces) {
       state.newsPiecesSaved = newsPieces;
+    },
+    SavePageNo(state, pageNo) {
+      state.pageNo = pageNo;
+    },
+    StoreUserId(state, id) {
+      state.userId = id;
     },
   },
   actions: {},

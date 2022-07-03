@@ -16,6 +16,7 @@
     "axios": "^0.27.2",
     "core-js": "^3.8.3",
     "element-plus": "^2.2.6",
+    "speak-tts": "^2.0.8",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
     "vuex": "^4.0.0"
@@ -53,26 +54,7 @@
     "parserOptions": {
       "parser": "@babel/eslint-parser"
     },
-    "rules": {
-      "indent": [
-        1,
-        4
-      ],
-      "eqeqeq": "off",
-      "curly": "off",
-      "quotes": [
-        "off",
-        "double"
-      ],
-      "eslint-disable-next-line": 4,
-      "max-len": [
-        "off",
-        200,
-        2
-      ],
-      "vue/max-attributes-per-line": "off",
-      "no-unused-vars": "off"
-    },
+    "rules": {},
     "overrides": [
       {
         "files": [
