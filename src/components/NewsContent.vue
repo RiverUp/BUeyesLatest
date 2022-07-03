@@ -19,7 +19,7 @@
     <NewsCard :newsPiece="newsConverted" />
   </el-container>
   <el-container>
-    <el-main v-html="newsConverted.content"> </el-main>
+    <el-main v-html="newsConverted.content" @click="HelpReadTitle"> </el-main>
   </el-container>
 </template>
 <script>
@@ -40,6 +40,7 @@ import {
   cancelCollection,
   click,
 } from "@/request/UserActionController";
+import { HelpRead, speech } from "@/tool/tts";
 export default {
   name: "NewsContent",
   data() {
@@ -63,6 +64,7 @@ export default {
   },
   methods: {
     GoBack: function () {
+      speech.cancel();
       router.go(-1);
     },
     Like() {
@@ -80,6 +82,9 @@ export default {
       } else {
         cancelCollection(this.userId, this.newsConverted.id);
       }
+    },
+    HelpReadTitle() {
+      HelpRead(this.newsConverted.content);
     },
   },
   computed: {

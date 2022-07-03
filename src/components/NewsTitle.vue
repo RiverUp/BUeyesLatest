@@ -5,7 +5,7 @@
         <el-icon class="outside"><Expand /></el-icon>
       </el-button>
       <el-button class="search" @click="OcrRecognize" color="#626aef" round>
-        <el-icon class="outside" ><Camera /></el-icon>
+        <el-icon class="outside"><Camera /></el-icon>
       </el-button>
       <el-button class="search" @click="ShowSearchInput" color="#626aef" round>
         <el-icon class="outside" v-if="sortOrSearch"><Search /></el-icon>
@@ -41,10 +41,25 @@
   <div class="hello">
     <el-container>
       <el-main>
+        <el-dialog
+          v-model="focusOnTitle"
+          title="新闻题目"
+          width="90%"
+          top="30vh"
+          @close="BlurTitle"
+          class="dialog"
+        >
+          <div class="titleFocused">
+            <p class="certainTitle">{{ newsTitle }}</p>
+          </div>
+        </el-dialog>
         <el-scrollbar v-infinite-scroll="GetMoreNews">
           <div style="height: 100%" v-for="news in newsPieces" :key="news.id">
-            <NewsCard :newsPiece="news" @click="GoToNewsContent(news)" />
-            <br />
+            <NewsCard
+              :newsPiece="news"
+              @click="HelpReadTitle(news)"
+              @dblclick="GoToNewsContent(news)"
+            />
           </div>
         </el-scrollbar>
       </el-main>
@@ -52,12 +67,14 @@
   </div>
 </template>
 <script>
+var time = null;
 import { Expand, Search, Back, Camera } from "@element-plus/icons-vue";
 import { getTitlesByCgId, getTitlesByKd } from "@/request/NewsController";
 import NewsCard from "./NewsCard.vue";
 import router from "@/router/index";
 import store from "@/store";
-import {CameraTakePicture} from "@/tool/camera";
+import { CameraTakePicture } from "@/tool/camera";
+import { speech } from "@/tool/tts";
 export default {
   name: "NewsHead",
   components: {
@@ -76,6 +93,8 @@ export default {
       sortOrSearch: true,
       searchInfo: "",
       pageNo: [],
+      focusOnTitle: false,
+      newsTitle: "",
     };
   },
   mounted() {
@@ -130,6 +149,7 @@ export default {
       CameraTakePicture();
     },
     GoToNewsContent(news) {
+      clearTimeout(time);
       store.commit("SavePageNo", this.pageNo);
       store.commit("ConvertNews", news);
       router.push({
@@ -139,6 +159,25 @@ export default {
         },
       });
     },
+    HelpReadTitle(news) {
+      clearTimeout(time);
+      time = setTimeout(() => {
+        if (this.newsTitle === news.title) {
+          if (speech.paused()) {
+            speech.resume();
+          } else {
+            speech.pause();
+          }
+        } else {
+          speech.cancel();
+          speech.speak({ text: news.title, queue: false });
+        }
+        this.newsTitle = news.title;
+      }, 300);
+    },
+    /*     BlurTitle() {
+      CancelReading();
+    }, */
   },
   computed: {
     newsSaved() {
@@ -150,6 +189,7 @@ export default {
   },
   watch: {
     $route: function () {
+      speech.cancel();
       console.log("执行watch$route");
       if (this.$route.name === "newsSort") {
         var caId = this.$route.params.categoryId;
@@ -227,5 +267,21 @@ export default {
   height: 3250px;
   padding: 0%;
   overflow-y: hidden;
+}
+</style>
+<style>
+.el-dialog {
+  background-color: rgb(246, 246, 198);
+  --el-dialog-content-font-size: x-large;
+  --el-dialog-title-font-size: large;
+  font-weight: bold;
+}
+.el-dialog .el-dialog__header {
+  padding-top: 7vw;
+}
+.certainTitle {
+  text-align: left;
+  margin-top: 50px;
+  color: #000;
 }
 </style>
