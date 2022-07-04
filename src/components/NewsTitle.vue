@@ -1,70 +1,122 @@
 <template>
   <UserDrawer :drawerOrNot="drawer" />
-  <el-container>
-    <el-header>
-      <el-button class="user" @click="ShowUserInfo">
-        <el-icon class="outside"><Expand /></el-icon>
-      </el-button>
-      <el-button class="search" @click="OcrRecognize" color="#626aef" round>
-        <el-icon class="outside"><Camera /></el-icon>
-      </el-button>
-      <el-button class="search" @click="ShowSearchInput" color="#626aef" round>
-        <el-icon class="outside" v-if="sortOrSearch"><Search /></el-icon>
-        <el-icon class="outside" v-else><Back /></el-icon>
-      </el-button>
-      <p class="title">BUeyes</p>
-      <el-menu
-        v-if="sortOrSearch"
-        :default-active="1"
-        mode="horizontal"
-        ellipsis="false"
-        @select="ChangeToSelectedSort(index)"
-        text-color="white"
-        active-text-color="purple"
-        router="true"
-      >
-        <el-menu-item index="1">{{ sort[0] }}</el-menu-item>
-        <el-menu-item index="2">{{ sort[1] }}</el-menu-item>
-        <el-menu-item index="3">{{ sort[2] }}</el-menu-item>
-        <el-menu-item index="4">{{ sort[3] }}</el-menu-item>
-        <el-menu-item index="5">{{ sort[4] }}</el-menu-item>
-        <el-menu-item index="6">{{ sort[5] }}</el-menu-item>
-      </el-menu>
-      <el-input v-else v-model="searchInfo" placeholder="Please input">
-        <template #prepend>
-          <el-button class="insideButton" @click="SearchNews">
-            <el-icon class="inside"><Search /></el-icon
-          ></el-button>
-        </template>
-      </el-input>
-    </el-header>
-  </el-container>
-  <div class="hello">
-    <el-container>
-      <el-main>
-        <el-dialog
-          v-model="focusOnTitle"
-          title="新闻题目"
-          width="90%"
-          top="30vh"
-          @close="BlurTitle"
-          class="dialog"
-        >
-          <div class="titleFocused">
-            <p class="certainTitle">{{ newsTitle }}</p>
+  <div v-touch:swipe.right="LastFocus">
+    <div v-touch:swipe.left="NextFocus">
+      <el-container>
+        <el-header>
+          <el-button
+            class="user"
+            @click="ShowUserInfo"
+            id="10"
+            value="用户信息"
+          >
+            <el-icon class="outside"><Expand /></el-icon>
+          </el-button>
+          <el-button
+            class="search"
+            @click="OcrRecognize"
+            color="#626aef"
+            round
+            id="11"
+            value="图片识别"
+          >
+            <el-icon class="outside"><Camera /></el-icon>
+          </el-button>
+          <el-button
+            class="search"
+            @click="ShowSearchInput"
+            color="#626aef"
+            round
+          >
+            <el-icon class="outside" v-if="sortOrSearch"><Search /></el-icon>
+            <el-icon class="outside" v-else><Back /></el-icon>
+          </el-button>
+          <p class="title">BUeyes</p>
+          <div class="menu" v-if="sortOrSearch">
+            <el-menu
+              :default-active="1"
+              mode="horizontal"
+              @select="ChangeToSelectedSort(index)"
+              text-color="white"
+              active-text-color="purple"
+              router="true"
+            >
+              <el-menu-item index="1" class="menu1" id="0">{{
+                sort[0]
+              }}</el-menu-item>
+              <el-menu-item class="menu1" index="2" id="1">{{
+                sort[1]
+              }}</el-menu-item>
+              <el-menu-item class="menu1" index="3" id="2">{{
+                sort[2]
+              }}</el-menu-item>
+              <el-menu-item class="menu1" index="4" id="3">{{
+                sort[3]
+              }}</el-menu-item>
+              <el-menu-item class="menu1" index="5" id="4">{{
+                sort[4]
+              }}</el-menu-item>
+            </el-menu>
+            <el-menu
+              :default-active="1"
+              mode="horizontal"
+              @select="ChangeToSelectedSort(index)"
+              text-color="white"
+              active-text-color="purple"
+              router="true"
+            >
+              <el-menu-item class="menu2" index="6" id="5">{{
+                sort[5]
+              }}</el-menu-item>
+              <el-menu-item class="menu2" index="7" id="6">{{
+                sort[6]
+              }}</el-menu-item>
+              <el-menu-item class="menu2" index="8" id="7">{{
+                sort[7]
+              }}</el-menu-item>
+              <el-menu-item class="menu2" index="9" id="8">{{
+                sort[8]
+              }}</el-menu-item>
+              <el-menu-item class="menu2" index="10" id="9">{{
+                sort[9]
+              }}</el-menu-item>
+            </el-menu>
           </div>
-        </el-dialog>
-        <el-scrollbar v-infinite-scroll="GetMoreNews">
-          <div style="height: 100%" v-for="news in newsPieces" :key="news.id">
-            <NewsCard
-              :newsPiece="news"
-              @click="HelpReadTitle(news)"
-              @dblclick="GoToNewsContent(news)"
-            />
-          </div>
-        </el-scrollbar>
-      </el-main>
-    </el-container>
+          <el-input v-else v-model="searchInfo" placeholder="Please input">
+            <template #prepend>
+              <el-button class="insideButton" @click="SearchNews">
+                <el-icon class="inside"><Search /></el-icon
+              ></el-button>
+            </template>
+          </el-input>
+        </el-header>
+      </el-container>
+      <el-container class="content">
+        <el-main>
+          <el-dialog
+            v-model="focusOnTitle"
+            title="新闻题目"
+            width="90%"
+            top="30vh"
+            @close="BlurTitle"
+          >
+            <div class="titleFocused">
+              <p class="certainTitle">{{ newsTitle }}</p>
+            </div>
+          </el-dialog>
+          <el-scrollbar v-infinite-scroll="GetMoreNews">
+            <div style="height: 100%" v-for="news in newsPieces" :key="news.id">
+              <NewsCard
+                :newsPiece="news"
+                @click="HelpReadTitle(news)"
+                @dblclick="GoToNewsContent(news)"
+                id="newspiece"
+              />
+            </div>
+          </el-scrollbar>
+        </el-main>
+      </el-container>
+    </div>
   </div>
 </template>
 <script>
@@ -76,7 +128,7 @@ import UserDrawer from "./UserDrawer.vue";
 import router from "@/router/index";
 import store from "@/store";
 import { CameraTakePicture } from "@/tool/camera";
-import { speech } from "@/tool/tts";
+import { speech, ReadTag } from "@/tool/tts";
 export default {
   name: "NewsHead",
   components: {
@@ -89,7 +141,18 @@ export default {
   },
   data() {
     return {
-      sort: ["推荐", "体育", "财经", "娱乐", "国际", "教育"],
+      sort: [
+        "推荐",
+        "体育",
+        "财经",
+        "娱乐",
+        "国际",
+        "教育",
+        "教育",
+        "教育",
+        "教育",
+        "教育",
+      ],
       sortIndex: 0,
       newsPieces: [],
       newsPiecesSaved: [],
@@ -98,11 +161,17 @@ export default {
       pageNo: [],
       focusOnTitle: false,
       newsTitle: "",
+      currentFocus: null, //当前焦点dom对象
+      tagNum: 12,
     };
   },
   mounted() {
     //第一次进入界面将每个类别的缓存都设为null
-    console.log("执行mounted");
+    this.currentFocus = document.getElementById(0);
+    speech.speak({
+      text: this.currentFocus.innerText,
+      queue: false,
+    });
     if (this.$route.name === "home" && this.newsSaved === null) {
       var i = 1;
       for (; i < 11; i++) {
@@ -180,9 +249,19 @@ export default {
         this.newsTitle = news.title;
       }, 300);
     },
-    /*     BlurTitle() {
-      CancelReading();
-    }, */
+    ReadConcreteTag() {
+      ReadTag(this.currentFocus.innerText);
+    },
+    NextFocus() {
+      console.log("调用next");
+      var focus = this.currentFocus;
+      var idNext = (parseInt(focus.id) + 1) % this.tagNum;
+      this.currentFocus = document.getElementById(idNext);
+      this.ReadConcreteTag();
+    },
+    LastFocus() {
+      console.log("调用last");
+    },
   },
   computed: {
     newsSaved() {
@@ -262,10 +341,11 @@ export default {
 }
 .el-menu {
   background-color: #4a2ac6;
-  height: 275px;
+  height: 8vw;
 }
 .el-menu-item {
   font-size: 100px;
+  width: 18%;
 }
 .el-main {
   margin-top: 70px;

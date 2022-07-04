@@ -18,4 +18,10 @@ const HelpRead = function (text) {
     });
   }
 };
-export { HelpRead, speech };
+const ReadTag = function (text) {
+  speech.speak({
+    text: text,
+    queue: false,
+  });
+};
+export { HelpRead, speech, ReadTag };

@@ -3,19 +3,24 @@
     <Expand>
       <!--更改了图片位置-->
       <el-avatar
+        v-if="pictured"
         style="text-align: center"
-        src="@../assets/user.png"
+        :src="src"
+        @click="Recognize"
       ></el-avatar>
+      <el-avatar v-else style="text-align: center" @click="TakePicture"
+        >点击进行人脸识别登录</el-avatar
+      >
     </Expand>
   </div>
   <div style="text-align: center">
-    <el-button type="primary" class="login_reg" @click="PlayLoginInfo"
+    <el-button type="primary" class="login_reg" @click="Recognize"
       ><strong>登录</strong></el-button
     >
   </div>
 
   <div style="text-align: center">
-    <el-button type="primary" class="login_reg" @click="PlayRegisterIfo"
+    <el-button type="primary" class="login_reg" @click="Register"
       ><strong>注册</strong></el-button
     >
   </div>
@@ -24,20 +29,42 @@
 //import写在这里
 //import { Expand } from "@element-plus/icons-vue";
 //import { getTitlesByCgId } from "@/request/NewsController";
+import { CameraTakePicture } from "@/tool/camera";
+import router from "@/router/index";
+import store from "@/store";
 export default {
   name: "UserFace",
   data() {
     return {
-      form: {
-        //最终传回一张用户图片
-        photo: "",
-      },
+      //最终传回一张用户图片
+      photo: "",
+      src: "", //基于图片的base64编码的图片源
+      pictured: false, //是否拍摄了照片
     };
+  },
+  methods: {
+    TakePicture() {
+      CameraTakePicture()
+        .then((imageInfo) => {
+          this.photo = imageInfo;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      this.src = "data:image/jpeg;base64," + this.photo;
+    },
+    Recognize() {
+      // 调用接口验证
+      var success = true;
+      if (success) {
+        store.commit("UpLoadFace", this.photo);
+        router.push({ name: "home" });
+      }
+    },
   },
   mounted() {
     document.body.style.backgroundColor = "#FFFED6";
   },
-  methods: {},
 };
 </script>
 <!-- 下面是一些关于 图形设计 的代码 -->
@@ -61,5 +88,7 @@ export default {
   margin-top: 600px;
   /* border: 100px;
   border-color :black; */
+  font-size: large;
+  font-weight: bold;
 }
 </style>

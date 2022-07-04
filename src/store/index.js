@@ -9,6 +9,8 @@ export default createStore({
       userId: "",
       drawerOrNot: false,
       token: "",
+      ocrPicture: "",
+      facePicture: "",
     };
   },
   getters: {},
@@ -27,6 +29,12 @@ export default createStore({
     },
     InverseDrawer(state) {
       state.drawerOrNot = !state.drawerOrNot;
+    },
+    UpLoadOcr(state, ocrPicture) {
+      state.ocrPicture = ocrPicture;
+    },
+    UpLoadFace(state, facePicture) {
+      state.facePicture = facePicture;
     },
   },
   actions: {},
