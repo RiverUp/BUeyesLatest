@@ -10,6 +10,7 @@ export default createStore({
       drawerOrNot: false,
       token: "",
       ocrPicture: "",
+      recognizedContent: "",
       facePicture: "",
     };
   },

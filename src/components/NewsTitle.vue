@@ -1,97 +1,74 @@
 <template>
   <UserDrawer :drawerOrNot="drawer" />
-  <div v-touch:swipe.right="LastFocus">
-    <div v-touch:swipe.left="NextFocus">
+  <div>
+    <el-container>
+      <el-header>
+        <el-button class="user" @click="ShowUserInfo" id="10" value="用户信息">
+          <el-icon class="outside"><Expand /></el-icon>
+        </el-button>
+        <el-button
+          class="search"
+          @click="OcrRecognize"
+          color="#626aef"
+          round
+          id="11"
+          value="图片识别"
+        >
+          <el-icon class="outside"><Camera /></el-icon>
+        </el-button>
+        <el-button
+          class="search"
+          @click="ShowSearchInput"
+          color="#626aef"
+          round
+          id="12"
+          value="语音交互"
+        >
+          <el-icon class="outside" v-if="sortOrSearch"><Microphone /></el-icon>
+          <el-icon class="outside" v-else><Back /></el-icon>
+        </el-button>
+        <p class="title">BUeyes</p>
+        <div class="menu" v-if="sortOrSearch">
+          <el-menu
+            :default-active="1"
+            mode="horizontal"
+            @select="ChangeToSelectedSort(index)"
+            text-color="white"
+            active-text-color="purple"
+            router="true"
+          >
+            <el-menu-item index="1" id="0">{{ sort[0] }}</el-menu-item>
+            <el-menu-item index="2" id="1">{{ sort[1] }}</el-menu-item>
+            <el-menu-item index="3" id="2">{{ sort[2] }}</el-menu-item>
+            <el-menu-item index="4" id="3">{{ sort[3] }}</el-menu-item>
+            <el-menu-item index="5" id="4">{{ sort[4] }}</el-menu-item>
+          </el-menu>
+          <el-menu
+            :default-active="1"
+            mode="horizontal"
+            @select="ChangeToSelectedSort(index)"
+            text-color="white"
+            active-text-color="purple"
+            router="true"
+          >
+            <el-menu-item index="6" id="5">{{ sort[5] }}</el-menu-item>
+            <el-menu-item index="7" id="6">{{ sort[6] }}</el-menu-item>
+            <el-menu-item index="8" id="7">{{ sort[7] }}</el-menu-item>
+            <el-menu-item index="9" id="8">{{ sort[8] }}</el-menu-item>
+            <el-menu-item index="10" id="9">{{ sort[9] }}</el-menu-item>
+          </el-menu>
+        </div>
+        <el-input v-else v-model="searchInfo" placeholder="Please input">
+          <template #prepend>
+            <el-button class="insideButton" @click="SearchNews">
+              <el-icon class="inside"><Search /></el-icon
+            ></el-button>
+          </template>
+        </el-input>
+      </el-header>
+    </el-container>
+    <div id="page1">
       <el-container>
-        <el-header>
-          <el-button
-            class="user"
-            @click="ShowUserInfo"
-            id="10"
-            value="用户信息"
-          >
-            <el-icon class="outside"><Expand /></el-icon>
-          </el-button>
-          <el-button
-            class="search"
-            @click="OcrRecognize"
-            color="#626aef"
-            round
-            id="11"
-            value="图片识别"
-          >
-            <el-icon class="outside"><Camera /></el-icon>
-          </el-button>
-          <el-button
-            class="search"
-            @click="ShowSearchInput"
-            color="#626aef"
-            round
-          >
-            <el-icon class="outside" v-if="sortOrSearch"><Search /></el-icon>
-            <el-icon class="outside" v-else><Back /></el-icon>
-          </el-button>
-          <p class="title">BUeyes</p>
-          <div class="menu" v-if="sortOrSearch">
-            <el-menu
-              :default-active="1"
-              mode="horizontal"
-              @select="ChangeToSelectedSort(index)"
-              text-color="white"
-              active-text-color="purple"
-              router="true"
-            >
-              <el-menu-item index="1" class="menu1" id="0">{{
-                sort[0]
-              }}</el-menu-item>
-              <el-menu-item class="menu1" index="2" id="1">{{
-                sort[1]
-              }}</el-menu-item>
-              <el-menu-item class="menu1" index="3" id="2">{{
-                sort[2]
-              }}</el-menu-item>
-              <el-menu-item class="menu1" index="4" id="3">{{
-                sort[3]
-              }}</el-menu-item>
-              <el-menu-item class="menu1" index="5" id="4">{{
-                sort[4]
-              }}</el-menu-item>
-            </el-menu>
-            <el-menu
-              :default-active="1"
-              mode="horizontal"
-              @select="ChangeToSelectedSort(index)"
-              text-color="white"
-              active-text-color="purple"
-              router="true"
-            >
-              <el-menu-item class="menu2" index="6" id="5">{{
-                sort[5]
-              }}</el-menu-item>
-              <el-menu-item class="menu2" index="7" id="6">{{
-                sort[6]
-              }}</el-menu-item>
-              <el-menu-item class="menu2" index="8" id="7">{{
-                sort[7]
-              }}</el-menu-item>
-              <el-menu-item class="menu2" index="9" id="8">{{
-                sort[8]
-              }}</el-menu-item>
-              <el-menu-item class="menu2" index="10" id="9">{{
-                sort[9]
-              }}</el-menu-item>
-            </el-menu>
-          </div>
-          <el-input v-else v-model="searchInfo" placeholder="Please input">
-            <template #prepend>
-              <el-button class="insideButton" @click="SearchNews">
-                <el-icon class="inside"><Search /></el-icon
-              ></el-button>
-            </template>
-          </el-input>
-        </el-header>
-      </el-container>
-      <el-container class="content">
         <el-main>
           <el-dialog
             v-model="focusOnTitle"
@@ -110,7 +87,7 @@
                 :newsPiece="news"
                 @click="HelpReadTitle(news)"
                 @dblclick="GoToNewsContent(news)"
-                id="newspiece"
+                ref="newspiece"
               />
             </div>
           </el-scrollbar>
@@ -121,7 +98,7 @@
 </template>
 <script>
 var time = null;
-import { Expand, Search, Back, Camera } from "@element-plus/icons-vue";
+import { Expand, Microphone, Back, Camera } from "@element-plus/icons-vue";
 import { getTitlesByCgId, getTitlesByKd } from "@/request/NewsController";
 import NewsCard from "./NewsCard.vue";
 import UserDrawer from "./UserDrawer.vue";
@@ -129,11 +106,12 @@ import router from "@/router/index";
 import store from "@/store";
 import { CameraTakePicture } from "@/tool/camera";
 import { speech, ReadTag } from "@/tool/tts";
+import Hammer from "hammerjs";
 export default {
   name: "NewsHead",
   components: {
     Expand,
-    Search,
+    Microphone,
     Back,
     Camera,
     NewsCard,
@@ -193,6 +171,7 @@ export default {
         this.newsPieces = this.newsSaved[1];
       }
     }
+    this.InitGesture();
   },
   methods: {
     ShowUserInfo() {
@@ -250,7 +229,56 @@ export default {
       }, 300);
     },
     ReadConcreteTag() {
-      ReadTag(this.currentFocus.innerText);
+      var id = parseInt(this.currentFocus.id);
+      if (id < 10) {
+        ReadTag(this.currentFocus.innerText);
+      } else {
+        ReadTag(this.currentFocus.value);
+      }
+    },
+    InitGesture() {
+      var that = this;
+      var hammers = new Hammer.Manager(document.getElementById("page1"));
+      hammers.add(new Hammer.Tap({ event: "doubletap", taps: 2 }));
+      // Single tap recognizer
+      hammers.add(new Hammer.Tap({ event: "singletap" }));
+      hammers.add(
+        new Hammer.Swipe({
+          event: "swiperight",
+          direction: Hammer.DIRECTION_RIGHT,
+        })
+      ); //单指点击重读
+      hammers.add(
+        new Hammer.Swipe({
+          event: "swiperightdouble",
+          pointer: 2,
+          direction: Hammer.DIRECTION_RIGHT,
+        })
+      ); //双指点击确认
+      hammers.add(
+        new Hammer.Swipe({
+          event: "swipeleft",
+          direction: Hammer.DIRECTION_LEFT,
+        })
+      );
+      hammers.add(new Hammer.Press({ event: "pressdouble", pointer: 2 }));
+      // we want to recognize this simulatenous, so a quadrupletap will be detected even while a tap has been recognized.
+      hammers.get("doubletap").recognizeWith("singletap");
+      // we only want to trigger a tap, when we don't have detected a doubletap
+      hammers.get("singletap").requireFailure("doubletap");
+      hammers.on("swiperight swipeleft", function (e) {
+        console.log(e.type);
+        switch (e.type) {
+          case "swipeleft":
+            that.NextFocus();
+            break;
+          case "swiperight":
+            that.LastFocus();
+            break;
+          default:
+            break;
+        }
+      });
     },
     NextFocus() {
       console.log("调用next");
@@ -261,6 +289,10 @@ export default {
     },
     LastFocus() {
       console.log("调用last");
+      var focus = this.currentFocus;
+      var idNext = (parseInt(focus.id) + 11) % this.tagNum;
+      this.currentFocus = document.getElementById(idNext);
+      this.ReadConcreteTag();
     },
   },
   computed: {
