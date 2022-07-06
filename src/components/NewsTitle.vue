@@ -1,99 +1,101 @@
 <template>
   <UserDrawer :drawerOrNot="drawer" />
-  <div>
+  <el-container>
+    <el-header>
+      <el-button
+        class="user"
+        @dblclick="ShowUserInfo"
+        @click="NoteUserInfo"
+        id="10"
+        value="用户信息"
+      >
+        <el-icon class="outside"><Expand /></el-icon>
+      </el-button>
+      <el-button
+        class="search"
+        @dblclick="OcrRecognize"
+        @click="NoteOcr"
+        color="#626aef"
+        round
+        id="11"
+        value="图片识别"
+      >
+        <el-icon class="outside"><Camera /></el-icon>
+      </el-button>
+      <el-button
+        class="search"
+        @click="ShowSearchInput"
+        color="#626aef"
+        round
+        id="12"
+        value="语音交互"
+      >
+        <el-icon class="outside" v-if="sortOrSearch"><Microphone /></el-icon>
+        <el-icon class="outside" v-else><Back /></el-icon>
+      </el-button>
+      <p class="title">BUeyes</p>
+      <div class="menu" v-if="sortOrSearch">
+        <el-menu
+          :default-active="1"
+          mode="horizontal"
+          @select="ChangeToSelectedSort"
+          text-color="white"
+          active-text-color="purple"
+        >
+          <el-menu-item index="1" id="0">{{ sort[0] }}</el-menu-item>
+          <el-menu-item index="2" id="1">{{ sort[1] }}</el-menu-item>
+          <el-menu-item index="3" id="2">{{ sort[2] }}</el-menu-item>
+          <el-menu-item index="4" id="3">{{ sort[3] }}</el-menu-item>
+          <el-menu-item index="5" id="4">{{ sort[4] }}</el-menu-item>
+        </el-menu>
+        <el-menu
+          :default-active="1"
+          mode="horizontal"
+          @select="ChangeToSelectedSort"
+          text-color="white"
+          active-text-color="purple"
+        >
+          <el-menu-item index="6" id="5">{{ sort[5] }}</el-menu-item>
+          <el-menu-item index="7" id="6">{{ sort[6] }}</el-menu-item>
+          <el-menu-item index="8" id="7">{{ sort[7] }}</el-menu-item>
+          <el-menu-item index="9" id="8">{{ sort[8] }}</el-menu-item>
+          <el-menu-item index="10" id="9">{{ sort[9] }}</el-menu-item>
+        </el-menu>
+      </div>
+      <el-input v-else v-model="searchInfo" placeholder="Please input">
+        <template #prepend>
+          <el-button class="insideButton" @click="SearchNews">
+            <el-icon class="inside"><Search /></el-icon
+          ></el-button>
+        </template>
+      </el-input>
+    </el-header>
+  </el-container>
+  <div id="page1">
     <el-container>
-      <el-header>
-        <el-button class="user" @click="ShowUserInfo" id="10" value="用户信息">
-          <el-icon class="outside"><Expand /></el-icon>
-        </el-button>
-        <el-button
-          class="search"
-          @click="OcrRecognize"
-          color="#626aef"
-          round
-          id="11"
-          value="图片识别"
+      <el-main>
+        <el-dialog
+          v-model="focusOnTitle"
+          title="新闻题目"
+          width="90%"
+          top="30vh"
         >
-          <el-icon class="outside"><Camera /></el-icon>
-        </el-button>
-        <el-button
-          class="search"
-          @click="ShowSearchInput"
-          color="#626aef"
-          round
-          id="12"
-          value="语音交互"
-        >
-          <el-icon class="outside" v-if="sortOrSearch"><Microphone /></el-icon>
-          <el-icon class="outside" v-else><Back /></el-icon>
-        </el-button>
-        <p class="title">BUeyes</p>
-        <div class="menu" v-if="sortOrSearch">
-          <el-menu
-            :default-active="1"
-            mode="horizontal"
-            @select="ChangeToSelectedSort(index)"
-            text-color="white"
-            active-text-color="purple"
-            router="true"
-          >
-            <el-menu-item index="1" id="0">{{ sort[0] }}</el-menu-item>
-            <el-menu-item index="2" id="1">{{ sort[1] }}</el-menu-item>
-            <el-menu-item index="3" id="2">{{ sort[2] }}</el-menu-item>
-            <el-menu-item index="4" id="3">{{ sort[3] }}</el-menu-item>
-            <el-menu-item index="5" id="4">{{ sort[4] }}</el-menu-item>
-          </el-menu>
-          <el-menu
-            :default-active="1"
-            mode="horizontal"
-            @select="ChangeToSelectedSort(index)"
-            text-color="white"
-            active-text-color="purple"
-            router="true"
-          >
-            <el-menu-item index="6" id="5">{{ sort[5] }}</el-menu-item>
-            <el-menu-item index="7" id="6">{{ sort[6] }}</el-menu-item>
-            <el-menu-item index="8" id="7">{{ sort[7] }}</el-menu-item>
-            <el-menu-item index="9" id="8">{{ sort[8] }}</el-menu-item>
-            <el-menu-item index="10" id="9">{{ sort[9] }}</el-menu-item>
-          </el-menu>
-        </div>
-        <el-input v-else v-model="searchInfo" placeholder="Please input">
-          <template #prepend>
-            <el-button class="insideButton" @click="SearchNews">
-              <el-icon class="inside"><Search /></el-icon
-            ></el-button>
-          </template>
-        </el-input>
-      </el-header>
+          <div class="titleFocused">
+            <p class="certainTitle">{{ newsTitle }}</p>
+          </div>
+        </el-dialog>
+        <el-scrollbar v-infinite-scroll="GetMoreNews">
+          <div style="height: 100%" v-for="news in newsPieces" :key="news.id">
+            <NewsCard
+              :newsPiece="news"
+              @dblclick="GoToNewsContent(news)"
+              @click="ReadTitle(news)"
+              ref="newspiece"
+            />
+          </div>
+        </el-scrollbar>
+      </el-main>
     </el-container>
-    <div id="page1">
-      <el-container>
-        <el-main>
-          <el-dialog
-            v-model="focusOnTitle"
-            title="新闻题目"
-            width="90%"
-            top="30vh"
-            @close="BlurTitle"
-          >
-            <div class="titleFocused">
-              <p class="certainTitle">{{ newsTitle }}</p>
-            </div>
-          </el-dialog>
-          <el-scrollbar v-infinite-scroll="GetMoreNews">
-            <div style="height: 100%" v-for="news in newsPieces" :key="news.id">
-              <NewsCard
-                :newsPiece="news"
-                @click="HelpReadTitle(news)"
-                @dblclick="GoToNewsContent(news)"
-                ref="newspiece"
-              />
-            </div>
-          </el-scrollbar>
-        </el-main>
-      </el-container>
-    </div>
   </div>
 </template>
 <script>
@@ -105,7 +107,7 @@ import UserDrawer from "./UserDrawer.vue";
 import router from "@/router/index";
 import store from "@/store";
 import { CameraTakePicture } from "@/tool/camera";
-import { speech, ReadTag } from "@/tool/tts";
+import { speech } from "@/tool/tts";
 import Hammer from "hammerjs";
 export default {
   name: "NewsHead",
@@ -140,23 +142,21 @@ export default {
       focusOnTitle: false,
       newsTitle: "",
       currentFocus: null, //当前焦点dom对象
+      currentIndex: 0,
       tagNum: 12,
     };
   },
   mounted() {
     //第一次进入界面将每个类别的缓存都设为null
     this.currentFocus = document.getElementById(0);
-    speech.speak({
-      text: this.currentFocus.innerText,
-      queue: false,
-    });
+    //speech(this.currentFocus.innerText);
     if (this.$route.name === "home" && this.newsSaved === null) {
       var i = 1;
       for (; i < 11; i++) {
         this.newsPiecesSaved[i] = null;
         this.pageNo[i] = 0;
       }
-      getTitlesByCgId(this.pageNo[1], 1, "2022_06_30").then((res) => {
+      getTitlesByCgId(this.pageNo[1], 1).then((res) => {
         this.newsPieces = res.data.data;
         this.newsPiecesSaved[1] = this.newsPieces;
         store.commit("ConvertNewsSaved", this.newsPiecesSaved);
@@ -171,13 +171,29 @@ export default {
         this.newsPieces = this.newsSaved[1];
       }
     }
-    this.InitGesture();
+    //this.InitGesture();
   },
   methods: {
+    NoteUserInfo() {
+      clearTimeout(time);
+      time = setTimeout(() => {
+        speech("用户信息");
+      }, 300);
+    },
     ShowUserInfo() {
+      clearTimeout(time);
       store.commit("InverseDrawer");
     },
-    ChangeToSelectedSort() {},
+    ChangeToSelectedSort(index) {
+      var tag = document.getElementById(index - 1).innerText;
+      speech(tag);
+      router.push({
+        name: "newsSort",
+        params: {
+          categoryId: index,
+        },
+      });
+    },
     GetMoreNews() {
       var cgId;
       if (this.$route.name === "home") {
@@ -185,7 +201,7 @@ export default {
       } else {
         cgId = this.$route.params.categoryId;
       }
-      getTitlesByCgId(this.pageNo[cgId], cgId, "2022_06_30").then((res) => {
+      getTitlesByCgId(this.pageNo[cgId], cgId).then((res) => {
         this.newsPieces = this.newsPieces.concat(res.data.data);
       });
       this.pageNo[cgId]++;
@@ -198,11 +214,28 @@ export default {
         this.newsPieces = res.data.data;
       });
     },
+    NoteOcr() {
+      clearTimeout(time);
+      time = setTimeout(() => {
+        speech("OCR识别");
+      }, 300);
+    },
     OcrRecognize() {
-      CameraTakePicture();
+      clearTimeout(time);
+      CameraTakePicture()
+        .then((imageInfo) => {
+          var photo = imageInfo;
+          store.commit("UpLoadOcr", photo);
+          router.push({ name: "ocr" });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      router.push({ name: "ocr" });
     },
     GoToNewsContent(news) {
       clearTimeout(time);
+      speech("");
       store.commit("SavePageNo", this.pageNo);
       store.commit("ConvertNews", news);
       router.push({
@@ -212,7 +245,20 @@ export default {
         },
       });
     },
-    HelpReadTitle(news) {
+    ReadTitle(news) {
+      clearTimeout(time);
+      time = setTimeout(() => {
+        var currentTitle = news.title;
+        if (currentTitle === this.newsTitle) {
+          speech("");
+          this.newsTitle = "";
+        } else {
+          speech(news.title);
+          this.newsTitle = news.title;
+        }
+      }, 300);
+    },
+    /*     HelpReadTitle(news) {
       clearTimeout(time);
       time = setTimeout(() => {
         if (this.newsTitle === news.title) {
@@ -227,13 +273,13 @@ export default {
         }
         this.newsTitle = news.title;
       }, 300);
-    },
+    },*/
     ReadConcreteTag() {
       var id = parseInt(this.currentFocus.id);
       if (id < 10) {
-        ReadTag(this.currentFocus.innerText);
+        speech(this.currentFocus.innerText);
       } else {
-        ReadTag(this.currentFocus.value);
+        speech(this.currentFocus.value);
       }
     },
     InitGesture() {
@@ -305,7 +351,7 @@ export default {
   },
   watch: {
     $route: function () {
-      speech.cancel();
+      speech("");
       console.log("执行watch$route");
       if (this.$route.name === "newsSort") {
         var caId = this.$route.params.categoryId;

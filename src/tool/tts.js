@@ -1,4 +1,20 @@
-import Speech from "speak-tts";
+/* eslint-disable no-undef */
+const speech = function (text) {
+  TTS.speak({
+    text: text,
+    locale: "zh-CN",
+  }).then(
+    function (res) {
+      return res;
+    },
+    function (reason) {
+      alert(reason);
+    },
+    false
+  );
+};
+export { speech };
+/* import Speech from "speak-tts";
 const speech = new Speech();
 speech.init({
   lang: "zh-CN",
@@ -24,4 +40,4 @@ const ReadTag = function (text) {
     queue: false,
   });
 };
-export { HelpRead, speech, ReadTag };
+export { HelpRead, speech, ReadTag }; */

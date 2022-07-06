@@ -8,58 +8,80 @@
         :src="src"
         @click="Recognize"
       ></el-avatar>
-      <el-avatar v-else style="text-align: center" @click="TakePicture"
-        >点击进行人脸识别登录</el-avatar
+      <el-avatar
+        v-else
+        style="text-align: center"
+        @dblclick="Recognize"
+        @click="NoteLog"
+        >请进行人脸识别登录</el-avatar
       >
     </Expand>
   </div>
   <div style="text-align: center">
-    <el-button type="primary" class="login_reg" @click="Recognize"
+    <el-button
+      type="primary"
+      class="login_reg"
+      @dblclick="Recognize"
+      @click="NoteLog"
       ><strong>登录</strong></el-button
     >
   </div>
 
   <div style="text-align: center">
-    <el-button type="primary" class="login_reg" @click="Register"
+    <el-button
+      type="primary"
+      class="login_reg"
+      @dblclick="Register"
+      @click="NoteRegister"
       ><strong>注册</strong></el-button
     >
   </div>
 </template>
 <script>
-//import写在这里
-//import { Expand } from "@element-plus/icons-vue";
-//import { getTitlesByCgId } from "@/request/NewsController";
-import { CameraTakePicture } from "@/tool/camera";
-import router from "@/router/index";
+var time = null;
 import store from "@/store";
+import router from "@/router/index";
+import { login } from "@/request/UserController";
+import { GetFacePicture } from "@/tool/camera";
+import speech from "@/tool/tts";
 export default {
-  name: "UserFace",
-  data() {
-    return {
-      //最终传回一张用户图片
-      photo: "",
-      src: "", //基于图片的base64编码的图片源
-      pictured: false, //是否拍摄了照片
-    };
-  },
+  name: "LoginPage",
   methods: {
-    TakePicture() {
-      CameraTakePicture()
+    NoteLog() {
+      clearTimeout(time);
+      time = setTimeout(() => {
+        speech("登录");
+      }, 300);
+    },
+    Recognize() {
+      clearTimeout(time);
+      GetFacePicture()
         .then((imageInfo) => {
-          this.photo = imageInfo;
+          var photo = imageInfo;
+          login(photo).then((res) => {
+            const rw = res.data.msg;
+            speech(rw);
+            if (rw === "登录成功") {
+              store.commit("UpLoadFace", photo);
+              store.commit("StoreUserId", res.data.data);
+              router.push({ name: "home" });
+            } //else {}
+          });
         })
         .catch((error) => {
           console.error(error);
         });
-      this.src = "data:image/jpeg;base64," + this.photo;
     },
-    Recognize() {
-      // 调用接口验证
-      var success = true;
-      if (success) {
-        store.commit("UpLoadFace", this.photo);
-        router.push({ name: "home" });
-      }
+    NoteRegister() {
+      clearTimeout(time);
+      time = setTimeout(() => {
+        speech("注册");
+      }, 300);
+    },
+    Register() {
+      clearTimeout(time);
+      //调用注册接口直接跳转
+      router.push({ name: "home" });
     },
   },
   mounted() {
@@ -67,6 +89,7 @@ export default {
   },
 };
 </script>
+
 <!-- 下面是一些关于 图形设计 的代码 -->
 <style scoped>
 .login_reg {

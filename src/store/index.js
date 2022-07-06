@@ -34,6 +34,9 @@ export default createStore({
     UpLoadOcr(state, ocrPicture) {
       state.ocrPicture = ocrPicture;
     },
+    UpLoadOcrText(state, ocrContent) {
+      state.recognizedContent = ocrContent;
+    },
     UpLoadFace(state, facePicture) {
       state.facePicture = facePicture;
     },

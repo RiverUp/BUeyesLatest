@@ -12,8 +12,8 @@
         <div class="e">
           <el-header class="el-header">
             <el-avatar
-              :class="el - avatar"
               :id="avatar"
+              :src="faceSrc"
               style="
                 position: absolute;
                 left: 30px;
@@ -25,7 +25,7 @@
           </el-header>
           <el-main>
             <!--下面是收藏图标，没写完，因为显示不出来-->
-            <el-collapse>
+            <el-collapse @click="NoteCollect">
               <el-collapse-item>
                 <template #title>
                   <el-icon><CollectionTag /></el-icon>
@@ -35,7 +35,8 @@
                   <p
                     v-for="newsCollected in collections"
                     :key="newsCollected.id"
-                    @click="RouteToNewsContent(newsCollected)"
+                    @click="NoteCollectNews(newsCollected)"
+                    @dblclick="RouteToNewsContent(newsCollected)"
                   >
                     {{ newsCollected.title }}
                     <el-divider />
@@ -56,6 +57,7 @@ import { CollectionTag } from "@element-plus/icons-vue";
 import store from "@/store";
 // import { getCollection } from "@/request/UserActionController";
 import router from "@/router/index";
+import { speech } from "@/tool/tts";
 
 export default {
   name: "UserDrawer",
@@ -161,22 +163,34 @@ export default {
       ],
     };
   },
-  mounted() {
-    /* getCollection("60a754ac634ba154596e8c6d").then((res) => {
+  /*   mounted() {
+    getCollection(this.userId).then((res) => {
       this.collections = res.data.data;
-    }); */
-  },
+    });
+  }, */
   computed: {
     drawer() {
       return store.state.drawerOrNot;
     },
+    faceSrc() {
+      return "data:image/jpeg;base64," + store.state.facePicture;
+    },
+    userId() {
+      return store.state.userId;
+    },
   },
   methods: {
+    NoteCollect() {
+      speech("收藏");
+    },
     DrawerValueChange() {
       this.drawer = true;
     },
     Reset() {
       store.commit("InverseDrawer");
+    },
+    NoteCollectNews(news) {
+      speech(news.title);
     },
     RouteToNewsContent(news) {
       store.commit("ConvertNews", news);
