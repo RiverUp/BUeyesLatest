@@ -41,9 +41,9 @@
 var time = null;
 import store from "@/store";
 import router from "@/router/index";
-import { login } from "@/request/UserController";
+import { login, register } from "@/request/UserController";
 import { GetFacePicture } from "@/tool/camera";
-import speech from "@/tool/tts";
+import { speech } from "@/tool/tts";
 export default {
   name: "LoginPage",
   methods: {
@@ -60,12 +60,12 @@ export default {
           var photo = imageInfo;
           login(photo).then((res) => {
             const rw = res.data.msg;
-            speech(rw);
             if (rw === "登录成功") {
               store.commit("UpLoadFace", photo);
               store.commit("StoreUserId", res.data.data);
               router.push({ name: "home" });
             } //else {}
+            speech(rw);
           });
         })
         .catch((error) => {
@@ -81,7 +81,22 @@ export default {
     Register() {
       clearTimeout(time);
       //调用注册接口直接跳转
-      router.push({ name: "home" });
+      GetFacePicture()
+        .then((imageInfo) => {
+          var photo = imageInfo;
+          register(photo).then((res) => {
+            const rw = res.data.msg;
+            if (rw === "注册成功") {
+              store.commit("UpLoadFace", photo);
+              store.commit("StoreUserId", res.data.data);
+              router.push({ name: "home" });
+            } //else {}
+            speech(rw);
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     },
   },
   mounted() {
@@ -100,6 +115,7 @@ export default {
   padding: 0;
   width: 1000px;
   margin-block: 100px;
+  margin: 150px;
   background-color: #4a2ac6;
   border: 0px;
   text-align: center;

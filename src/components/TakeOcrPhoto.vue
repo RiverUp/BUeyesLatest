@@ -9,17 +9,19 @@
   <el-container>
     <el-image :src="ocrSrc" :fit="contain" />
   </el-container>
-  <el-container>
-    <el-main v-html="content" @click="HelpRead"> </el-main>
+  <el-container @click="HelpRead">
+    <el-main>
+      <p>{{ content }}</p>
+    </el-main>
   </el-container>
 </template>
 <script>
 var time = null;
 import store from "@/store";
 import router from "@/router/index";
-import { recognizeOcr } from "@/request/OCRController";
 import { Back } from "@element-plus/icons-vue";
 import { speech } from "@/tool/tts";
+import { recognizeOcr } from "@/request/OCRController";
 export default {
   name: "TakeOcrPhoto",
   components: {
@@ -27,8 +29,8 @@ export default {
   },
   data() {
     return {
-      content: "",
       reading: false,
+      content: "",
     };
   },
   methods: {
@@ -40,13 +42,13 @@ export default {
     },
     GoBack: function () {
       clearTimeout(time);
-      //speech.cancel();
       router.go(-1);
+      speech("");
     },
     HelpRead() {
       if (!this.reading) {
         this.reading = !this.reading;
-        speech(this.newsConverted.content);
+        speech(this.content);
       } else {
         this.reading = !this.reading;
         speech("");
@@ -54,21 +56,21 @@ export default {
     },
   },
   mounted() {
-    //var info = store.state.ocrPicture;
-    recognizeOcr(this.ocrInfo).then((res) => {
+    recognizeOcr(this.ocr).then((res) => {
       this.content = res.data.data;
-      this.reading = true;
-      speech(this.content);
     });
   },
   computed: {
     ocrSrc() {
       return "data:image/jpeg;base64," + store.state.ocrPicture;
     },
-    ocrInfo() {
+    ocr() {
       return store.state.ocrPicture;
     },
   },
+  /* watch: {
+    ocrSrc: function () {},
+  }, */
 };
 </script>
 <style scoped>

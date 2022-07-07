@@ -24,17 +24,18 @@
       </el-button>
       <el-button
         class="search"
-        @click="ShowSearchInput"
+        @click="NoteVoice"
+        @dblclick="InteractWithVoice"
         color="#626aef"
         round
         id="12"
         value="语音交互"
       >
-        <el-icon class="outside" v-if="sortOrSearch"><Microphone /></el-icon>
-        <el-icon class="outside" v-else><Back /></el-icon>
+        <el-icon class="outside" v-if="!recording"><Microphone /></el-icon>
+        <el-icon class="outside" v-else><Mute /></el-icon>
       </el-button>
       <p class="title">BUeyes</p>
-      <div class="menu" v-if="sortOrSearch">
+      <div class="menu" v-if="!recording">
         <el-menu
           :default-active="1"
           mode="horizontal"
@@ -100,13 +101,15 @@
 </template>
 <script>
 var time = null;
-import { Expand, Microphone, Back, Camera } from "@element-plus/icons-vue";
+import { Expand, Microphone, Camera, Mute } from "@element-plus/icons-vue";
 import { getTitlesByCgId, getTitlesByKd } from "@/request/NewsController";
 import NewsCard from "./NewsCard.vue";
 import UserDrawer from "./UserDrawer.vue";
 import router from "@/router/index";
 import store from "@/store";
+// import { UpLoadFile } from "@/tool/fileUpload";
 import { CameraTakePicture } from "@/tool/camera";
+// import { StartRecording, StopRecording } from "@/tool/tape";
 import { speech } from "@/tool/tts";
 import Hammer from "hammerjs";
 export default {
@@ -114,7 +117,7 @@ export default {
   components: {
     Expand,
     Microphone,
-    Back,
+    Mute,
     Camera,
     NewsCard,
     UserDrawer,
@@ -123,20 +126,20 @@ export default {
     return {
       sort: [
         "推荐",
-        "体育",
-        "财经",
-        "娱乐",
+        "热门",
+        "国内",
         "国际",
+        "社会",
+        "文娱",
         "教育",
-        "教育",
-        "教育",
-        "教育",
-        "教育",
+        "生活",
+        "科技",
+        "法治",
       ],
+      categoryIds: [1, 2, 1, 3, 5, 6, 7, 8, 4, 10],
       sortIndex: 0,
       newsPieces: [],
       newsPiecesSaved: [],
-      sortOrSearch: true,
       searchInfo: "",
       pageNo: [],
       focusOnTitle: false,
@@ -144,11 +147,12 @@ export default {
       currentFocus: null, //当前焦点dom对象
       currentIndex: 0,
       tagNum: 12,
+      recording: false, //是否正在录音
     };
   },
   mounted() {
     //第一次进入界面将每个类别的缓存都设为null
-    this.currentFocus = document.getElementById(0);
+    // this.currentFocus = document.getElementById(0);
     //speech(this.currentFocus.innerText);
     if (this.$route.name === "home" && this.newsSaved === null) {
       var i = 1;
@@ -159,7 +163,7 @@ export default {
       getTitlesByCgId(this.pageNo[1], 1).then((res) => {
         this.newsPieces = res.data.data;
         this.newsPiecesSaved[1] = this.newsPieces;
-        store.commit("ConvertNewsSaved", this.newsPiecesSaved);
+        //store.commit("ConvertNewsSaved", this.newsPiecesSaved);
       });
       this.pageNo[1]++;
     } else {
@@ -174,6 +178,30 @@ export default {
     //this.InitGesture();
   },
   methods: {
+    NoteVoice() {
+      clearTimeout(time);
+      time = setTimeout(() => {
+        if (this.recording) {
+          speech("结束录音");
+        } else {
+          speech("语音交互");
+        }
+      }, 300);
+    },
+    /* InteractWithVoice() {
+      clearTimeout(time);
+      if (this.recording) {
+        this.recording = !this.recording;
+        StopRecording();
+        UpLoadFile().then((res) => {
+          this.searchInfo = res;
+          this.SearchNews();
+        });
+      } else {
+        this.recording = !this.recording;
+        StartRecording();
+      }
+    }, */
     NoteUserInfo() {
       clearTimeout(time);
       time = setTimeout(() => {
@@ -185,14 +213,14 @@ export default {
       store.commit("InverseDrawer");
     },
     ChangeToSelectedSort(index) {
-      var tag = document.getElementById(index - 1).innerText;
-      speech(tag);
       router.push({
         name: "newsSort",
         params: {
           categoryId: index,
         },
       });
+      var tag = document.getElementById(index - 1).innerText;
+      speech(tag);
     },
     GetMoreNews() {
       var cgId;
@@ -210,7 +238,7 @@ export default {
       this.sortOrSearch = !this.sortOrSearch;
     },
     SearchNews() {
-      getTitlesByKd("2022_06_30", this.searchInfo).then((res) => {
+      getTitlesByKd(this.searchInfo).then((res) => {
         this.newsPieces = res.data.data;
       });
     },
@@ -231,13 +259,12 @@ export default {
         .catch((error) => {
           console.error(error);
         });
-      router.push({ name: "ocr" });
     },
     GoToNewsContent(news) {
       clearTimeout(time);
-      speech("");
       store.commit("SavePageNo", this.pageNo);
       store.commit("ConvertNews", news);
+      store.commit("ConvertNewsSaved", this.newsPiecesSaved);
       router.push({
         name: "news",
         params: {
@@ -250,11 +277,11 @@ export default {
       time = setTimeout(() => {
         var currentTitle = news.title;
         if (currentTitle === this.newsTitle) {
-          speech("");
           this.newsTitle = "";
+          speech("");
         } else {
-          speech(news.title);
           this.newsTitle = news.title;
+          speech(news.title);
         }
       }, 300);
     },
@@ -351,17 +378,18 @@ export default {
   },
   watch: {
     $route: function () {
-      speech("");
       console.log("执行watch$route");
       if (this.$route.name === "newsSort") {
-        var caId = this.$route.params.categoryId;
+        var caId = this.categoryIds[this.$route.params.categoryId];
         if (this.newsSaved[caId] === null) {
-          getTitlesByCgId(this.pageNo[caId], caId, "2022_06_30").then((res) => {
-            this.newsPieces = res.data.data;
-            this.newsPiecesSaved = this.newsSaved;
-            this.newsPiecesSaved[caId] = this.newsPieces; //View组件改变data会重新初始化
-            store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
-          });
+          if (caId <= 10) {
+            getTitlesByCgId(this.pageNo[caId], caId).then((res) => {
+              this.newsPieces = res.data.data;
+              this.newsPiecesSaved = this.newsSaved;
+              this.newsPiecesSaved[caId] = this.newsPieces; //View组件改变data会重新初始化
+              store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
+            });
+          } // else
           this.pageNo[caId]++;
         } else {
           this.newsPieces = this.newsSaved[caId];

@@ -25,8 +25,8 @@
           </el-header>
           <el-main>
             <!--下面是收藏图标，没写完，因为显示不出来-->
-            <el-collapse @click="NoteCollect">
-              <el-collapse-item>
+            <el-collapse v-model="activeName">
+              <el-collapse-item name="collect">
                 <template #title>
                   <el-icon><CollectionTag /></el-icon>
                   收藏
@@ -53,6 +53,7 @@
 </template>
 
 <script>
+var time = null;
 import { CollectionTag } from "@element-plus/icons-vue";
 import store from "@/store";
 // import { getCollection } from "@/request/UserActionController";
@@ -161,6 +162,8 @@ export default {
           time: "2022-6-30 11:59:20",
         },
       ],
+      collectFold: true,
+      activeName: "collect",
     };
   },
   /*   mounted() {
@@ -180,8 +183,16 @@ export default {
     },
   },
   methods: {
-    NoteCollect() {
-      speech("收藏");
+    NoteCollectNews(news) {
+      clearTimeout(time);
+      time = setTimeout(() => {
+        if (this.collectFold) {
+          this.collectFold = !this.collectFold;
+          speech("收藏");
+        } else {
+          speech(news.title);
+        }
+      }, 300);
     },
     DrawerValueChange() {
       this.drawer = true;
@@ -189,10 +200,14 @@ export default {
     Reset() {
       store.commit("InverseDrawer");
     },
-    NoteCollectNews(news) {
-      speech(news.title);
-    },
+    /*     NoteCollectNews(news) {
+      clearTimeout(time);
+      time = setTimeout(() => {
+        speech(news.title);
+      }, 300);
+    }, */
     RouteToNewsContent(news) {
+      clearTimeout(time);
       store.commit("ConvertNews", news);
       router.push({
         name: "news",
@@ -200,6 +215,7 @@ export default {
           id: news.id,
         },
       });
+      speech("");
     },
   },
 };
