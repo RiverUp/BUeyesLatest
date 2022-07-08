@@ -24,5 +24,27 @@ const register = async (faceInfo) => {
   }
 };
 
-export { login, register };
+const getHotRecommendations = async (userId) => {
+  try {
+    const res = await user.post(
+      `getHotRecommendations?num=10&userId=${userId}`
+    );
+    return res;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getRealtimeRecommendations = async (userId) => {
+  try {
+    const res = await user.post(
+      `getRealtimeRecommendations?num=10&userId=${userId}`
+    );
+    return res;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export { login, register, getHotRecommendations, getRealtimeRecommendations };
 // 还不知道返回值格式

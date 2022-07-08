@@ -104,6 +104,10 @@
 var time = null;
 import { Expand, Camera, Back, Search } from "@element-plus/icons-vue";
 import { getTitlesByCgId, getTitlesByKd } from "@/request/NewsController";
+import {
+  getHotRecommendations,
+  getRealtimeRecommendations,
+} from "@/request/UserController";
 import NewsCard from "./NewsCard.vue";
 import UserDrawer from "./UserDrawer.vue";
 import router from "@/router/index";
@@ -137,7 +141,7 @@ export default {
         "科技",
         "法治",
       ],
-      categoryIds: [1, 2, 1, 3, 5, 6, 7, 8, 4, 10],
+      categoryIds: [11, 12, 1, 3, 5, 6, 7, 8, 4, 10],
       sortIndex: 0,
       newsPieces: [],
       newsPiecesSaved: [],
@@ -161,7 +165,7 @@ export default {
         this.newsPiecesSaved[i] = null;
         this.pageNo[i] = 0;
       }
-      getTitlesByCgId(this.pageNo[1], 1).then((res) => {
+      getRealtimeRecommendations(this.userId).then((res) => {
         this.newsPieces = res.data.data;
         this.newsPiecesSaved[1] = this.newsPieces;
         store.commit("ConvertNewsSaved", this.newsPiecesSaved);
@@ -172,8 +176,10 @@ export default {
       if (this.$route.name === "newsSort") {
         var caId = this.$route.params.categoryId;
         this.newsPieces = this.newsSaved[caId];
+        this.pageNo = this.pageNoSaved;
       } else {
         this.newsPieces = this.newsSaved[1];
+        this.pageNo = this.pageNoSaved;
       }
     }
     //this.InitGesture();
@@ -235,14 +241,40 @@ export default {
     GetMoreNews() {
       var cgId;
       if (this.$route.name === "home") {
-        cgId = 1;
+        getRealtimeRecommendations(this.userId).then((res) => {
+          this.newsPieces = res.data.data;
+        });
       } else {
-        cgId = this.$route.params.categoryId;
+        cgId = this.categoryIds[this.$route.params.categoryId - 1];
+        switch (cgId) {
+          case 11:
+            getRealtimeRecommendations(this.userId).then((res) => {
+              this.newsPieces = this.newsPieces.concat(res.data.data);
+            });
+            break;
+          case 12:
+            getHotRecommendations(this.userId).then((res) => {
+              this.newsPieces = this.newsPieces.concat(res.data.data);
+            });
+            break;
+          case 1:
+          case 3:
+          case 4:
+          case 5:
+          case 6:
+          case 7:
+          case 8:
+          case 10:
+            getTitlesByCgId(this.pageNo[cgId], cgId).then((res) => {
+              this.newsPieces = this.newsPieces.concat(res.data.data);
+            });
+            this.pageNo[this.$route.params.categoryId]++;
+            break;
+          default:
+            break;
+        }
       }
-      getTitlesByCgId(this.pageNo[cgId], cgId).then((res) => {
-        this.newsPieces = this.newsPieces.concat(res.data.data);
-      });
-      this.pageNo[cgId]++;
+      store.commit("SavePageNo", this.pageNo);
     },
     ShowSearchInput() {
       this.sortOrSearch = !this.sortOrSearch;
@@ -273,13 +305,12 @@ export default {
     },
     GoToNewsContent(news) {
       clearTimeout(time);
-      store.commit("SavePageNo", this.pageNo);
+      // store.commit("SavePageNo", this.pageNo);
       store.commit("ConvertNews", news);
-      store.commit("ConvertNewsSaved", this.newsPiecesSaved);
       router.push({
         name: "news",
         params: {
-          id: news.title,
+          id: news.newsId,
         },
       });
     },
@@ -389,23 +420,42 @@ export default {
     IdResponded() {
       return store.state.idres;
     },
+    userId() {
+      return store.state.userId;
+    },
   },
   watch: {
     $route: function () {
       if (this.$route.name === "newsSort") {
         var caId = this.categoryIds[this.$route.params.categoryId - 1];
-        if (this.newsSaved[caId] === null) {
+        if (this.newsSaved[this.$route.params.categoryId] === null) {
           if (caId <= 10) {
             getTitlesByCgId(this.pageNo[caId], caId).then((res) => {
               this.newsPieces = res.data.data;
               this.newsPiecesSaved = this.newsSaved;
-              this.newsPiecesSaved[caId] = this.newsPieces; //View组件改变data会重新初始化
+              this.newsPiecesSaved[this.$route.params.categoryId] =
+                this.newsPieces; //View组件改变data会重新初始化
               store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
             });
-          } // else
+          } //
+          else if (caId === 11) {
+            getRealtimeRecommendations(this.userId).then((res) => {
+              this.newsPieces = res.data.data;
+              this.newsPiecesSaved = this.newsSaved;
+              this.newsPiecesSaved[1] = this.newsPieces; //View组件改变data会重新初始化
+              store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
+            });
+          } else {
+            getHotRecommendations(this.userId).then((res) => {
+              this.newsPieces = res.data.data;
+              this.newsPiecesSaved = this.newsSaved;
+              this.newsPiecesSaved[2] = this.newsPieces; //View组件改变data会重新初始化
+              store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
+            });
+          }
           this.pageNo[caId]++;
         } else {
-          this.newsPieces = this.newsSaved[caId];
+          this.newsPieces = this.newsSaved[this.$route.params.categoryId];
         }
       }
     },

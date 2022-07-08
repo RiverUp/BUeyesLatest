@@ -164,13 +164,14 @@ export default {
       ],
       collectFold: true,
       activeName: "collect",
+      collectionss: [],
     };
   },
-  /*   mounted() {
-    getCollection(this.userId).then((res) => {
+  mounted() {
+    /* getCollection(this.userId).then((res) => {
       this.collections = res.data.data;
-    });
-  }, */
+    }); */
+  },
   computed: {
     drawer() {
       return store.state.drawerOrNot;

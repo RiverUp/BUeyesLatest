@@ -61,7 +61,7 @@ export default {
         .then((imageInfo) => {
           console.log(imageInfo);
           store.commit("UpLoadFace", imageInfo);
-          store.commit("StoreUserId", 13415);
+          store.commit("StoreUserId", 6);
           router.push({ name: "home" });
           speech("登录成功");
           /* login(photo).then((res) => {
