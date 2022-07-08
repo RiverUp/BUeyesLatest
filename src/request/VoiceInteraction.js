@@ -3,7 +3,7 @@ import { BaseURL } from "./ServerAddress";
 
 const vi = axios.create({
   baseURL: BaseURL + "voiceInteraction/getKeywords",
-  timeout: 1000,
+  timeout: 6000,
 });
 
 const InteractWithVoice = async (vedioInfo) => {

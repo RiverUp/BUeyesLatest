@@ -1,7 +1,7 @@
 import axios from "axios";
 import { BaseURL } from "./ServerAddress";
 
-const user = axios.create({ baseURL: BaseURL + "user/", timeout: 1000 });
+const user = axios.create({ baseURL: BaseURL + "user/", timeout: 6000 });
 const login = async (faceInfo) => {
   try {
     const res = await user.post("login", { base64: faceInfo });

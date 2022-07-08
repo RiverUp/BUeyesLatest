@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-deprecated-v-on-native-modifier -->
 <template>
   <UserDrawer :drawerOrNot="drawer" />
   <el-container>
@@ -25,14 +26,14 @@
       <el-button
         class="search"
         @click="NoteVoice"
-        @dblclick="InteractWithVoice"
+        @dblclick="changeIcon"
         color="#626aef"
         round
         id="12"
         value="语音交互"
       >
-        <el-icon class="outside" v-if="!recording"><Microphone /></el-icon>
-        <el-icon class="outside" v-else><Mute /></el-icon>
+        <el-icon class="outside" v-if="!recording"><Search /></el-icon>
+        <el-icon class="outside" v-else><Back /></el-icon>
       </el-button>
       <p class="title">BUeyes</p>
       <div class="menu" v-if="!recording">
@@ -63,13 +64,13 @@
           <el-menu-item index="10" id="9">{{ sort[9] }}</el-menu-item>
         </el-menu>
       </div>
-      <el-input v-else v-model="searchInfo" placeholder="Please input">
-        <template #prepend>
-          <el-button class="insideButton" @click="SearchNews">
-            <el-icon class="inside"><Search /></el-icon
-          ></el-button>
-        </template>
-      </el-input>
+      <el-input
+        v-else
+        v-model="searchInfo"
+        @keyup.enter="SearchNews"
+        placeholder="please input"
+        id="input"
+      />
     </el-header>
   </el-container>
   <div id="page1">
@@ -101,7 +102,7 @@
 </template>
 <script>
 var time = null;
-import { Expand, Microphone, Camera, Mute } from "@element-plus/icons-vue";
+import { Expand, Camera, Back, Search } from "@element-plus/icons-vue";
 import { getTitlesByCgId, getTitlesByKd } from "@/request/NewsController";
 import NewsCard from "./NewsCard.vue";
 import UserDrawer from "./UserDrawer.vue";
@@ -116,9 +117,9 @@ export default {
   name: "NewsHead",
   components: {
     Expand,
-    Microphone,
-    Mute,
+    Back,
     Camera,
+    Search,
     NewsCard,
     UserDrawer,
   },
@@ -163,7 +164,7 @@ export default {
       getTitlesByCgId(this.pageNo[1], 1).then((res) => {
         this.newsPieces = res.data.data;
         this.newsPiecesSaved[1] = this.newsPieces;
-        //store.commit("ConvertNewsSaved", this.newsPiecesSaved);
+        store.commit("ConvertNewsSaved", this.newsPiecesSaved);
       });
       this.pageNo[1]++;
     } else {
@@ -181,25 +182,34 @@ export default {
     NoteVoice() {
       clearTimeout(time);
       time = setTimeout(() => {
-        if (this.recording) {
-          speech("结束录音");
+        if (!this.recording) {
+          speech("按关键词搜索新闻");
         } else {
-          speech("语音交互");
+          speech("返回主界面");
         }
       }, 300);
     },
+    changeIcon() {
+      clearTimeout(time);
+      this.recording = !this.recording;
+      if (this.recording) {
+        document.getElementById("input").focus();
+      }
+    },
     /* InteractWithVoice() {
       clearTimeout(time);
-      if (this.recording) {
-        this.recording = !this.recording;
+      if (this.recording === 1) {
+        this.recording = 2;
         StopRecording();
         UpLoadFile().then((res) => {
           this.searchInfo = res;
           this.SearchNews();
         });
-      } else {
-        this.recording = !this.recording;
+      } else if (this.recording === 0) {
+        this.recording = 1;
         StartRecording();
+      } else {
+        this.recording = 0;
       }
     }, */
     NoteUserInfo() {
@@ -241,6 +251,7 @@ export default {
       getTitlesByKd(this.searchInfo).then((res) => {
         this.newsPieces = res.data.data;
       });
+      speech("为您搜索" + this.searchInfo + "相关的新闻");
     },
     NoteOcr() {
       clearTimeout(time);
@@ -268,7 +279,7 @@ export default {
       router.push({
         name: "news",
         params: {
-          id: news.id,
+          id: news.title,
         },
       });
     },
@@ -375,12 +386,14 @@ export default {
     pageNoSaved() {
       return store.state.pageNo;
     },
+    IdResponded() {
+      return store.state.idres;
+    },
   },
   watch: {
     $route: function () {
-      console.log("执行watch$route");
       if (this.$route.name === "newsSort") {
-        var caId = this.categoryIds[this.$route.params.categoryId];
+        var caId = this.categoryIds[this.$route.params.categoryId - 1];
         if (this.newsSaved[caId] === null) {
           if (caId <= 10) {
             getTitlesByCgId(this.pageNo[caId], caId).then((res) => {
@@ -439,6 +452,8 @@ export default {
 }
 .inside {
   font-size: 125px;
+  font-weight: bold;
+  color: #4a2ac6;
 }
 .title {
   text-align: left;
