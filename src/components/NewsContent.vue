@@ -74,8 +74,8 @@ export default {
     },
     GoBack: function () {
       clearTimeout(time);
-      speech("");
       router.go(-1);
+      speech("");
     },
     NoteLike() {
       clearTimeout(time);
@@ -118,7 +118,7 @@ export default {
     HelpRead() {
       if (!this.reading) {
         this.reading = !this.reading;
-        speech(this.newsConverted.content);
+        speech(this.newsRead);
       } else {
         this.reading = !this.reading;
         speech("");
@@ -128,6 +128,9 @@ export default {
   computed: {
     newsConverted() {
       return store.state.news;
+    },
+    newsRead() {
+      return store.state.news.content.replace(/<[^>]*>|<\/[^>]*>/gm, "");
     },
     userId() {
       return store.state.userId;

@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-deprecated-v-on-native-modifier -->
 <template>
   <UserDrawer :drawerOrNot="drawer" />
   <el-container>
@@ -24,17 +25,18 @@
       </el-button>
       <el-button
         class="search"
-        @click="ShowSearchInput"
+        @click="NoteVoice"
+        @dblclick="changeIcon"
         color="#626aef"
         round
         id="12"
         value="语音交互"
       >
-        <el-icon class="outside" v-if="sortOrSearch"><Microphone /></el-icon>
+        <el-icon class="outside" v-if="!recording"><Search /></el-icon>
         <el-icon class="outside" v-else><Back /></el-icon>
       </el-button>
       <p class="title">BUeyes</p>
-      <div class="menu" v-if="sortOrSearch">
+      <div class="menu" v-if="!recording">
         <el-menu
           :default-active="1"
           mode="horizontal"
@@ -62,13 +64,13 @@
           <el-menu-item index="10" id="9">{{ sort[9] }}</el-menu-item>
         </el-menu>
       </div>
-      <el-input v-else v-model="searchInfo" placeholder="Please input">
-        <template #prepend>
-          <el-button class="insideButton" @click="SearchNews">
-            <el-icon class="inside"><Search /></el-icon
-          ></el-button>
-        </template>
-      </el-input>
+      <el-input
+        v-else
+        v-model="searchInfo"
+        @keyup.enter="SearchNews"
+        placeholder="please input"
+        id="input"
+      />
     </el-header>
   </el-container>
   <div id="page1">
@@ -100,22 +102,28 @@
 </template>
 <script>
 var time = null;
-import { Expand, Microphone, Back, Camera } from "@element-plus/icons-vue";
+import { Expand, Camera, Back, Search } from "@element-plus/icons-vue";
 import { getTitlesByCgId, getTitlesByKd } from "@/request/NewsController";
+import {
+  getHotRecommendations,
+  getRealtimeRecommendations,
+} from "@/request/UserController";
 import NewsCard from "./NewsCard.vue";
 import UserDrawer from "./UserDrawer.vue";
 import router from "@/router/index";
 import store from "@/store";
+// import { UpLoadFile } from "@/tool/fileUpload";
 import { CameraTakePicture } from "@/tool/camera";
+// import { StartRecording, StopRecording } from "@/tool/tape";
 import { speech } from "@/tool/tts";
 import Hammer from "hammerjs";
 export default {
   name: "NewsHead",
   components: {
     Expand,
-    Microphone,
     Back,
     Camera,
+    Search,
     NewsCard,
     UserDrawer,
   },
@@ -123,20 +131,20 @@ export default {
     return {
       sort: [
         "推荐",
-        "体育",
-        "财经",
-        "娱乐",
+        "热门",
+        "国内",
         "国际",
+        "社会",
+        "文娱",
         "教育",
-        "教育",
-        "教育",
-        "教育",
-        "教育",
+        "生活",
+        "科技",
+        "法治",
       ],
+      categoryIds: [11, 12, 1, 3, 5, 6, 7, 8, 4, 10],
       sortIndex: 0,
       newsPieces: [],
       newsPiecesSaved: [],
-      sortOrSearch: true,
       searchInfo: "",
       pageNo: [],
       focusOnTitle: false,
@@ -144,11 +152,12 @@ export default {
       currentFocus: null, //当前焦点dom对象
       currentIndex: 0,
       tagNum: 12,
+      recording: false, //是否正在录音
     };
   },
   mounted() {
     //第一次进入界面将每个类别的缓存都设为null
-    this.currentFocus = document.getElementById(0);
+    // this.currentFocus = document.getElementById(0);
     //speech(this.currentFocus.innerText);
     if (this.$route.name === "home" && this.newsSaved === null) {
       var i = 1;
@@ -156,7 +165,7 @@ export default {
         this.newsPiecesSaved[i] = null;
         this.pageNo[i] = 0;
       }
-      getTitlesByCgId(this.pageNo[1], 1).then((res) => {
+      getRealtimeRecommendations(this.userId).then((res) => {
         this.newsPieces = res.data.data;
         this.newsPiecesSaved[1] = this.newsPieces;
         store.commit("ConvertNewsSaved", this.newsPiecesSaved);
@@ -167,13 +176,48 @@ export default {
       if (this.$route.name === "newsSort") {
         var caId = this.$route.params.categoryId;
         this.newsPieces = this.newsSaved[caId];
+        this.pageNo = this.pageNoSaved;
       } else {
         this.newsPieces = this.newsSaved[1];
+        this.pageNo = this.pageNoSaved;
       }
     }
     //this.InitGesture();
   },
   methods: {
+    NoteVoice() {
+      clearTimeout(time);
+      time = setTimeout(() => {
+        if (!this.recording) {
+          speech("按关键词搜索新闻");
+        } else {
+          speech("返回主界面");
+        }
+      }, 300);
+    },
+    changeIcon() {
+      clearTimeout(time);
+      this.recording = !this.recording;
+      if (this.recording) {
+        document.getElementById("input").focus();
+      }
+    },
+    /* InteractWithVoice() {
+      clearTimeout(time);
+      if (this.recording === 1) {
+        this.recording = 2;
+        StopRecording();
+        UpLoadFile().then((res) => {
+          this.searchInfo = res;
+          this.SearchNews();
+        });
+      } else if (this.recording === 0) {
+        this.recording = 1;
+        StartRecording();
+      } else {
+        this.recording = 0;
+      }
+    }, */
     NoteUserInfo() {
       clearTimeout(time);
       time = setTimeout(() => {
@@ -185,34 +229,61 @@ export default {
       store.commit("InverseDrawer");
     },
     ChangeToSelectedSort(index) {
-      var tag = document.getElementById(index - 1).innerText;
-      speech(tag);
       router.push({
         name: "newsSort",
         params: {
           categoryId: index,
         },
       });
+      var tag = document.getElementById(index - 1).innerText;
+      speech(tag);
     },
     GetMoreNews() {
       var cgId;
       if (this.$route.name === "home") {
-        cgId = 1;
+        getRealtimeRecommendations(this.userId).then((res) => {
+          this.newsPieces = res.data.data;
+        });
       } else {
-        cgId = this.$route.params.categoryId;
+        cgId = this.categoryIds[this.$route.params.categoryId - 1];
+        switch (cgId) {
+          case 11:
+            getRealtimeRecommendations(this.userId).then((res) => {
+              this.newsPieces = this.newsPieces.concat(res.data.data);
+            });
+            break;
+          case 12:
+            getHotRecommendations(this.userId).then((res) => {
+              this.newsPieces = this.newsPieces.concat(res.data.data);
+            });
+            break;
+          case 1:
+          case 3:
+          case 4:
+          case 5:
+          case 6:
+          case 7:
+          case 8:
+          case 10:
+            getTitlesByCgId(this.pageNo[cgId], cgId).then((res) => {
+              this.newsPieces = this.newsPieces.concat(res.data.data);
+            });
+            this.pageNo[this.$route.params.categoryId]++;
+            break;
+          default:
+            break;
+        }
       }
-      getTitlesByCgId(this.pageNo[cgId], cgId).then((res) => {
-        this.newsPieces = this.newsPieces.concat(res.data.data);
-      });
-      this.pageNo[cgId]++;
+      store.commit("SavePageNo", this.pageNo);
     },
     ShowSearchInput() {
       this.sortOrSearch = !this.sortOrSearch;
     },
     SearchNews() {
-      getTitlesByKd("2022_06_30", this.searchInfo).then((res) => {
+      getTitlesByKd(this.searchInfo).then((res) => {
         this.newsPieces = res.data.data;
       });
+      speech("为您搜索" + this.searchInfo + "相关的新闻");
     },
     NoteOcr() {
       clearTimeout(time);
@@ -231,17 +302,15 @@ export default {
         .catch((error) => {
           console.error(error);
         });
-      router.push({ name: "ocr" });
     },
     GoToNewsContent(news) {
       clearTimeout(time);
-      speech("");
-      store.commit("SavePageNo", this.pageNo);
+      // store.commit("SavePageNo", this.pageNo);
       store.commit("ConvertNews", news);
       router.push({
         name: "news",
         params: {
-          id: news.id,
+          id: news.newsId,
         },
       });
     },
@@ -250,11 +319,11 @@ export default {
       time = setTimeout(() => {
         var currentTitle = news.title;
         if (currentTitle === this.newsTitle) {
-          speech("");
           this.newsTitle = "";
+          speech("");
         } else {
-          speech(news.title);
           this.newsTitle = news.title;
+          speech(news.title);
         }
       }, 300);
     },
@@ -348,23 +417,45 @@ export default {
     pageNoSaved() {
       return store.state.pageNo;
     },
+    IdResponded() {
+      return store.state.idres;
+    },
+    userId() {
+      return store.state.userId;
+    },
   },
   watch: {
     $route: function () {
-      speech("");
-      console.log("执行watch$route");
       if (this.$route.name === "newsSort") {
-        var caId = this.$route.params.categoryId;
-        if (this.newsSaved[caId] === null) {
-          getTitlesByCgId(this.pageNo[caId], caId, "2022_06_30").then((res) => {
-            this.newsPieces = res.data.data;
-            this.newsPiecesSaved = this.newsSaved;
-            this.newsPiecesSaved[caId] = this.newsPieces; //View组件改变data会重新初始化
-            store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
-          });
+        var caId = this.categoryIds[this.$route.params.categoryId - 1];
+        if (this.newsSaved[this.$route.params.categoryId] === null) {
+          if (caId <= 10) {
+            getTitlesByCgId(this.pageNo[caId], caId).then((res) => {
+              this.newsPieces = res.data.data;
+              this.newsPiecesSaved = this.newsSaved;
+              this.newsPiecesSaved[this.$route.params.categoryId] =
+                this.newsPieces; //View组件改变data会重新初始化
+              store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
+            });
+          } //
+          else if (caId === 11) {
+            getRealtimeRecommendations(this.userId).then((res) => {
+              this.newsPieces = res.data.data;
+              this.newsPiecesSaved = this.newsSaved;
+              this.newsPiecesSaved[1] = this.newsPieces; //View组件改变data会重新初始化
+              store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
+            });
+          } else {
+            getHotRecommendations(this.userId).then((res) => {
+              this.newsPieces = res.data.data;
+              this.newsPiecesSaved = this.newsSaved;
+              this.newsPiecesSaved[2] = this.newsPieces; //View组件改变data会重新初始化
+              store.commit("ConvertNewsSaved", this.newsPiecesSaved); //异步函数问题，要把缓存放到异步函数中
+            });
+          }
           this.pageNo[caId]++;
         } else {
-          this.newsPieces = this.newsSaved[caId];
+          this.newsPieces = this.newsSaved[this.$route.params.categoryId];
         }
       }
     },
@@ -411,6 +502,8 @@ export default {
 }
 .inside {
   font-size: 125px;
+  font-weight: bold;
+  color: #4a2ac6;
 }
 .title {
   text-align: left;

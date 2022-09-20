@@ -3,7 +3,7 @@ import { BaseURL } from "./ServerAddress";
 import { getTime } from "./GetTime";
 const userAction = axios.create({
   baseURL: BaseURL + "userAction/",
-  timeout: 1000,
+  timeout: 6000,
 });
 const like = async (userId, newsId) => {
   try {
